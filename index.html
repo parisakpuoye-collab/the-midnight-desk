@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>The Midnight Desk</title>
+
+  <!-- Fonts -->
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&display=swap">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Crimson+Pro:wght@300;400;600&display=swap">
+
+  <!-- CSS -->
+  <link rel="stylesheet" href="style.css">
+
+  <!-- App Logic -->
+  <script defer src="app.js"></script>
+</head>
+
+<body>
+
+  <!-- Header -->
+  <header>
+    <div class="logo">THE MIDNIGHT DESK</div>
+
+    <nav class="top-nav">
+      <a href="main-stories.html">MAIN STORIES</a>
+      <a href="side-stories.html">SIDE STORIES</a>
+      <a href="world-lore.html">WORLD LORE</a>
+      <a href="submission.html">SUBMISSION</a>
+      <a href="about.html">ABOUT</a>
+      <a href="search.html">SEARCH</a>
+
+      <!-- Admin Link (only visible to you) -->
+      <a id="admin-link" href="admin-dashboard.html" style="display:none;">ADMIN</a>
+    </nav>
+
+    <div id="auth-controls" style="text-align:center; margin-top:10px;">
+      <button id="logout-btn" style="display:none;">Logout</button>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <div class="page-container">
+    <main id="page-content">
+      <section>
+        <h1>Welcome to The Midnight Desk</h1>
+        <p>Original stories about my characters in my universe.</p>
+      </section>
+    </main>
+  </div>
+
+  <!-- Firebase Scripts -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-storage.js"></script>
+
+</body>
+</html>

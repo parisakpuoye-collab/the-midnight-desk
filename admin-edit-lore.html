@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Edit Lore Entry</title>
+
+    <!-- Fonts -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&display=swap">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Crimson+Pro:wght@300;400;600&display=swap">
+
+    <!-- CSS -->
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+    <!-- Header -->
+    <header>
+        <div class="logo">THE MIDNIGHT DESK</div>
+
+        <nav class="top-nav">
+            <a href="main-stories.html">MAIN STORIES</a>
+            <a href="side-stories.html">SIDE STORIES</a>
+            <a href="world-lore.html">WORLD LORE</a>
+            <a href="submission.html">SUBMISSION</a>
+            <a href="about.html">ABOUT</a>
+
+            <!-- Admin Link (only visible to you) -->
+            <a id="admin-link" href="admin-dashboard.html" style="display:none;">ADMIN</a>
+        </nav>
+
+        <!-- Auth Controls -->
+        <div id="auth-controls" style="text-align:center; margin-top:10px;">
+            <button id="logout-btn" style="display:none;">Logout</button>
+        </div>
+    </header>
+
+    <!-- Page Container -->
+    <div class="page-container">
+
+        <h1 class="admin-title">Edit Lore Entry</h1>
+
+        <!-- Edit Lore Form -->
+        <form id="edit-lore-form">
+
+            <label>Lore Title</label>
+            <input type="text" id="edit-lore-title" required>
+
+            <label>Short Description</label>
+            <textarea id="edit-lore-description" required></textarea>
+
+            <label>Full Lore Text</label>
+            <textarea id="edit-lore-body" required></textarea>
+
+            <label>Tags (comma separated)</label>
+            <input type="text" id="edit-lore-tags">
+
+            <label>Add Image to Lore</label>
+            <input type="file" id="lore-image-file" accept="image/*">
+
+            <button type="button" id="insert-image-btn">Upload & Insert Image</button>
+
+            <button type="submit">Save Changes</button>
+        </form>
+
+        <p id="edit-lore-success" style="color: lightgreen;"></p>
+        <p id="edit-lore-error" style="color: pink;"></p>
+
+    </div>
+
+    <!-- Firebase Scripts -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-storage.js"></script>
+
+    <!-- App Logic -->
+    <script src="app.js"></script>
+
+    <!-- Image Upload + Lore Editing Logic -->
+    <script>
+        const insertBtn = document.getElementById("insert-image-btn");
+        const imageInput = document.getElementById("lore-image-file");
+        const loreBody = document.getElementById("edit-lore-body");
+
+        insertBtn.addEventListener("click", async () => {
+            const file = imageInput.files[0];
+            if (!file) return;
+
+            try {
+                const storageRef = firebase.storage().ref("lore-images/" + Date.now() + "-" + file.name);
+                await storageRef.put(file);
+                const imageURL = await storageRef.getDownloadURL();
+
+                const insertText = `\n<img src="${imageURL}" class="lore-image">\n`;
+                loreBody.value += insertText;
+
+                imageInput.value = "";
+            } catch (err) {
+                alert("Image upload failed: " + err.message);
+            }
+        });
+
+        document.addEventListener("DOMContentLoaded", async () => {
+            const params = new URLSearchParams(window.location.search);
+            const loreId = params.get("id");
+
+            try {
+                const doc = await firebase.firestore()
+                    .collection("lore")
+                    .doc(loreId)
+                    .get();
+
+                const data = doc.data();
+
+                document.getElementById("edit-lore-title").value = data.title;
+                document.getElementById("edit-lore-description").value = data.description;
+                document.getElementById("edit-lore-body").value = data.body;
+                document.getElementById("edit-lore-tags").value = data.tags || "";
+
+            } catch (err) {
+                document.getElementById("edit-lore-error").textContent = "Error loading lore entry.";
+            }
+
+            document.getElementById("edit-lore-form").addEventListener("submit", async (e) => {
+                e.preventDefault();
+
+                const newTitle = document.getElementById("edit-lore-title").value;
+                const newDescription = document.getElementById("edit-lore-description").value;
+                const newBody = document.getElementById("edit-lore-body").value;
+                const newTags = document.getElementById("edit-lore-tags").value;
+
+                try {
+                    await firebase.firestore()
+                        .collection("lore")
+                        .doc(loreId)
+                        .update({
+                            title: newTitle,
+                            description: newDescription,
+                            body: newBody,
+                            tags: newTags
+                        });
+
+                    document.getElementById("edit-lore-success").textContent = "Lore updated!";
+                } catch (err) {
+                    document.getElementById("edit-lore-error").textContent = err.message;
+                }
+            });
+        });
+    </script>
+
+</body>
+</html>

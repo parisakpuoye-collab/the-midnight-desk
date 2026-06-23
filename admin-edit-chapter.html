@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Edit Chapter</title>
+
+    <!-- Fonts -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&display=swap">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Crimson+Pro:wght@300;400;600&display=swap">
+
+    <!-- CSS -->
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+    <!-- Header -->
+    <header>
+        <div class="logo">THE MIDNIGHT DESK</div>
+
+        <nav class="top-nav">
+            <a href="main-stories.html">MAIN STORIES</a>
+            <a href="side-stories.html">SIDE STORIES</a>
+            <a href="world-lore.html">WORLD LORE</a>
+            <a href="submission.html">SUBMISSION</a>
+            <a href="about.html">ABOUT</a>
+
+            <!-- Admin Link (only visible to you) -->
+            <a id="admin-link" href="admin-dashboard.html" style="display:none;">ADMIN</a>
+        </nav>
+
+        <!-- Auth Controls -->
+        <div id="auth-controls" style="text-align:center; margin-top:10px;">
+            <button id="logout-btn" style="display:none;">Logout</button>
+        </div>
+    </header>
+
+    <!-- Page Container -->
+    <div class="page-container">
+
+        <h1 class="admin-title">Edit Chapter</h1>
+
+        <!-- Edit Chapter Form -->
+        <form id="edit-chapter-form">
+
+            <label>Chapter Title</label>
+            <input type="text" id="edit-chapter-title" required>
+
+            <label>Chapter Content</label>
+            <textarea id="edit-chapter-content" required></textarea>
+
+            <label>Add Image to Chapter</label>
+            <input type="file" id="chapter-image-file" accept="image/*">
+
+            <button type="button" id="insert-image-btn">Upload & Insert Image</button>
+
+            <button type="submit">Save Changes</button>
+        </form>
+
+        <p id="edit-chapter-success" style="color: lightgreen;"></p>
+        <p id="edit-chapter-error" style="color: pink;"></p>
+
+    </div>
+
+    <!-- Firebase Scripts -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-storage.js"></script>
+
+    <!-- App Logic -->
+    <script src="app.js"></script>
+
+    <!-- Image Upload + Chapter Editing Logic -->
+    <script>
+        const insertBtn = document.getElementById("insert-image-btn");
+        const imageInput = document.getElementById("chapter-image-file");
+        const chapterContent = document.getElementById("edit-chapter-content");
+
+        insertBtn.addEventListener("click", async () => {
+            const file = imageInput.files[0];
+            if (!file) return;
+
+            try {
+                const storageRef = firebase.storage().ref("chapter-images/" + Date.now() + "-" + file.name);
+                await storageRef.put(file);
+                const imageURL = await storageRef.getDownloadURL();
+
+                const insertText = `\n<img src="${imageURL}" class="chapter-image">\n`;
+                chapterContent.value += insertText;
+
+                imageInput.value = "";
+            } catch (err) {
+                alert("Image upload failed: " + err.message);
+            }
+        });
+
+        document.addEventListener("DOMContentLoaded", async () => {
+            const params = new URLSearchParams(window.location.search);
+            const storyId = params.get("story");
+            const chapterId = params.get("chapter");
+
+            try {
+                const chapterDoc = await firebase.firestore()
+                    .collection("stories")
+                    .doc(storyId)
+                    .collection("chapters")
+                    .doc(chapterId)
+                    .get();
+
+                const data = chapterDoc.data();
+
+                document.getElementById("edit-chapter-title").value = data.title;
+                document.getElementById("edit-chapter-content").value = data.content;
+
+            } catch (err) {
+                document.getElementById("edit-chapter-error").textContent = "Error loading chapter.";
+            }
+
+            document.getElementById("edit-chapter-form").addEventListener("submit", async (e) => {
+                e.preventDefault();
+
+                const newTitle = document.getElementById("edit-chapter-title").value;
+                const newContent = document.getElementById("edit-chapter-content").value;
+
+                try {
+                    await firebase.firestore()
+                        .collection("stories")
+                        .doc(storyId)
+                        .collection("chapters")
+                        .doc(chapterId)
+                        .update({
+                            title: newTitle,
+                            content: newContent
+                        });
+
+                    document.getElementById("edit-chapter-success").textContent = "Chapter updated!";
+                } catch (err) {
+                    document.getElementById("edit-chapter-error").textContent = err.message;
+                }
+            });
+        });
+    </script>
+
+</body>
+</html>
