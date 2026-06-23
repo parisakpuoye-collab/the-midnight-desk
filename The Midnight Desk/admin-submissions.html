@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Admin — Community Submissions</title>
+
+    <!-- Fonts -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&display=swap">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Crimson+Pro:wght@300;400;600&display=swap">
+
+    <!-- CSS -->
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+    <!-- Header -->
+    <header>
+        <div class="logo">THE MIDNIGHT DESK</div>
+
+        <nav class="top-nav">
+            <a href="main-stories.html">MAIN STORIES</a>
+            <a href="side-stories.html">SIDE STORIES</a>
+            <a href="world-lore.html">WORLD LORE</a>
+            <a href="submission.html">SUBMISSION</a>
+            <a href="about.html">ABOUT</a>
+
+            <!-- Admin Link (only visible to you) -->
+            <a id="admin-link" href="admin-dashboard.html" style="display:none;">ADMIN</a>
+        </nav>
+
+        <div id="auth-controls" style="text-align:center; margin-top:10px;">
+            <button id="logout-btn" style="display:none;">Logout</button>
+        </div>
+    </header>
+
+    <!-- Page Container -->
+    <div class="page-container">
+        <h1 class="admin-title">Community Submissions</h1>
+
+        <div id="admin-feed"></div>
+    </div>
+
+    <!-- Firebase Scripts -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-storage.js"></script>
+
+    <!-- App Logic -->
+    <script src="app.js"></script>
+
+    <!-- Admin Feed Logic -->
+    <script>
+        auth.onAuthStateChanged(user => {
+            if (!user) return;
+            if (user.email.toLowerCase() !== "parisakpuoye@gmail.com") return;
+
+            loadAdminFeed();
+        });
+
+        function loadAdminFeed() {
+            const container = document.getElementById("admin-feed");
+
+            firebase.firestore()
+                .collection("posts")
+                .orderBy("createdAt", "desc")
+                .onSnapshot(snapshot => {
+                    container.innerHTML = "";
+
+                    snapshot.forEach(doc => {
+                        const data = doc.data();
+                        const id = doc.id;
+
+                        const post = document.createElement("div");
+                        post.className = "post";
+
+                        post.innerHTML = `
+                            <p>${data.text}</p>
+                            ${data.imageUrl ? `<img src="${data.imageUrl}" class="post-image">` : ""}
+                            <div style="margin-top:10px;">
+                                <button onclick="toggleReplies('${id}')">💬 Replies (${data.replyCount || 0})</button>
+                                <button onclick="deletePost('${id}')" class="danger-btn">Delete Post</button>
+                            </div>
+                            <div id="replies-${id}" style="display:none; margin-top:15px;"></div>
+                        `;
+
+                        container.appendChild(post);
+                    });
+                });
+        }
+
+        function toggleReplies(postId) {
+            const container = document.getElementById(`replies-${postId}`);
+            const isOpen = container.style.display === "block";
+
+            container.style.display = isOpen ? "none" : "block";
+
+            if (!isOpen) loadRepliesAdmin(postId);
+        }
+
+        function loadRepliesAdmin(postId) {
+            const container = document.getElementById(`replies-${postId}`);
+            container.innerHTML = "";
+
+            firebase.firestore()
+                .collection("posts")
+                .doc(postId)
+                .collection("replies")
+                .orderBy("createdAt", "asc")
+                .onSnapshot(snapshot => {
+                    container.innerHTML = "";
+
+                    snapshot.forEach(doc => {
+                        const data = doc.data();
+                        const id = doc.id;
+
+                        const div = document.createElement("div");
+                        div.className = "reply";
+
+                        div.innerHTML = `
+                            <p>${data.text}</p>
+                            <button onclick="deleteReply('${postId}', '${id}')" class="danger-btn">Delete Reply</button>
+                        `;
+
+                        container.appendChild(div);
+                    });
+
+                    if (snapshot.empty) {
+                        container.innerHTML = "<p>No replies.</p>";
+                    }
+                });
+        }
+
+        async function deletePost(id) {
+            if (!confirm("Delete this post?")) return;
+
+            try {
+                await firebase.firestore().collection("posts").doc(id).delete();
+            } catch (err) {
+                alert("Error deleting post: " + err.message);
+            }
+        }
+
+        async function deleteReply(postId, replyId) {
+            if (!confirm("Delete this reply?")) return;
+
+            try {
+                await firebase.firestore()
+                    .collection("posts")
+                    .doc(postId)
+                    .collection("replies")
+                    .doc(replyId)
+                    .delete();
+            } catch (err) {
+                alert("Error deleting reply: " + err.message);
+            }
+        }
+    </script>
+
+</body>
+</html>

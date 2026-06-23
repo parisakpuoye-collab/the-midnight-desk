@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Edit Story</title>
+
+    <!-- Fonts -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&display=swap">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Crimson+Pro:wght@300;400;600&display=swap">
+
+    <!-- CSS -->
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+    <!-- Header -->
+    <header>
+        <div class="logo">THE MIDNIGHT DESK</div>
+
+        <nav class="top-nav">
+            <a href="main-stories.html">MAIN STORIES</a>
+            <a href="side-stories.html">SIDE STORIES</a>
+            <a href="world-lore.html">WORLD LORE</a>
+            <a href="submission.html">SUBMISSION</a>
+            <a href="about.html">ABOUT</a>
+
+            <!-- Admin Link (only visible to you) -->
+            <a id="admin-link" href="admin-dashboard.html" style="display:none;">ADMIN</a>
+        </nav>
+
+        <!-- Auth Controls -->
+        <div id="auth-controls" style="text-align:center; margin-top:10px;">
+            <button id="logout-btn" style="display:none;">Logout</button>
+        </div>
+    </header>
+
+    <!-- Page Container -->
+    <div class="page-container">
+
+        <h1 class="admin-title">Edit Story</h1>
+
+        <!-- Edit Story Form -->
+        <form id="edit-story-form">
+
+            <label>Story Title</label>
+            <input type="text" id="edit-story-title" required>
+
+            <label>Description</label>
+            <textarea id="edit-story-description" required></textarea>
+
+            <label>Cover Image (upload new to replace)</label>
+            <input type="file" id="edit-story-cover-file" accept="image/*">
+
+            <label>Category</label>
+            <select id="edit-story-category">
+                <option value="main">Main Story</option>
+                <option value="side">Side Story</option>
+            </select>
+
+            <button type="submit">Save Changes</button>
+        </form>
+
+        <p id="edit-story-success" style="color: lightgreen;"></p>
+        <p id="edit-story-error" style="color: pink;"></p>
+
+    </div>
+
+    <!-- Firebase Scripts -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-storage.js"></script>
+
+    <!-- App Logic -->
+    <script src="app.js"></script>
+
+    <!-- Image Upload + Story Editing Logic -->
+    <script>
+        document.addEventListener("DOMContentLoaded", async () => {
+            const params = new URLSearchParams(window.location.search);
+            const storyId = params.get("id");
+
+            try {
+                const docSnap = await firebase.firestore()
+                    .collection("stories")
+                    .doc(storyId)
+                    .get();
+
+                const story = docSnap.data();
+
+                document.getElementById("edit-story-title").value = story.title;
+                document.getElementById("edit-story-description").value = story.description;
+                document.getElementById("edit-story-category").value = story.category || "main";
+
+                window.currentCoverURL = story.coverURL || "";
+
+            } catch (err) {
+                document.getElementById("edit-story-error").textContent = "Error loading story.";
+            }
+
+            document.getElementById("edit-story-form").addEventListener("submit", async (e) => {
+                e.preventDefault();
+
+                const newTitle = document.getElementById("edit-story-title").value;
+                const newDescription = document.getElementById("edit-story-description").value;
+                const newCategory = document.getElementById("edit-story-category").value;
+
+                const fileInput = document.getElementById("edit-story-cover-file");
+                const file = fileInput.files[0];
+
+                let coverURL = window.currentCoverURL;
+
+                try {
+                    if (file) {
+                        const storageRef = firebase.storage().ref("story-covers/" + Date.now() + "-" + file.name);
+                        await storageRef.put(file);
+                        coverURL = await storageRef.getDownloadURL();
+                    }
+
+                    await firebase.firestore()
+                        .collection("stories")
+                        .doc(storyId)
+                        .update({
+                            title: newTitle,
+                            description: newDescription,
+                            category: newCategory,
+                            coverURL
+                        });
+
+                    document.getElementById("edit-story-success").textContent = "Story updated!";
+                } catch (err) {
+                    document.getElementById("edit-story-error").textContent = err.message;
+                }
+            });
+        });
+    </script>
+
+</body>
+</html>

@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Add Chapter</title>
+
+    <!-- Fonts -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&display=swap">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Crimson+Pro:wght@300;400;600&display=swap">
+
+    <!-- CSS -->
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+    <!-- Header -->
+    <header>
+        <div class="logo">THE MIDNIGHT DESK</div>
+
+        <nav class="top-nav">
+            <a href="main-stories.html">MAIN STORIES</a>
+            <a href="side-stories.html">SIDE STORIES</a>
+            <a href="world-lore.html">WORLD LORE</a>
+            <a href="submission.html">SUBMISSION</a>
+            <a href="about.html">ABOUT</a>
+
+            <!-- Admin Link (only visible to you) -->
+            <a id="admin-link" href="admin-dashboard.html" style="display:none;">ADMIN</a>
+        </nav>
+
+        <!-- Auth Controls -->
+        <div id="auth-controls" style="text-align:center; margin-top:10px;">
+            <button id="logout-btn" style="display:none;">Logout</button>
+        </div>
+    </header>
+
+    <!-- Page Container -->
+    <div class="page-container">
+
+        <h1 class="admin-title">Add Chapter</h1>
+
+        <!-- Add Chapter Form -->
+        <form id="add-chapter-form">
+
+            <label>Select Story</label>
+            <select id="chapter-story" required></select>
+
+            <label>Chapter Title</label>
+            <input type="text" id="chapter-title" required>
+
+            <label>Chapter Content</label>
+            <textarea id="chapter-content" required></textarea>
+
+            <label>Add Image to Chapter</label>
+            <input type="file" id="chapter-image-file" accept="image/*">
+
+            <button type="button" id="insert-image-btn">Upload & Insert Image</button>
+
+            <button type="submit">Add Chapter</button>
+        </form>
+
+        <p id="chapter-success" style="color: lightgreen;"></p>
+        <p id="chapter-error" style="color: pink;"></p>
+
+    </div>
+
+    <!-- Firebase Scripts -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-storage.js"></script>
+
+    <!-- App Logic -->
+    <script src="app.js"></script>
+
+    <!-- Image Upload + Chapter Creation Logic -->
+    <script>
+        const insertBtn = document.getElementById("insert-image-btn");
+        const imageInput = document.getElementById("chapter-image-file");
+        const chapterContent = document.getElementById("chapter-content");
+
+        insertBtn.addEventListener("click", async () => {
+            const file = imageInput.files[0];
+            if (!file) return;
+
+            try {
+                const storageRef = firebase.storage().ref("chapter-images/" + Date.now() + "-" + file.name);
+                await storageRef.put(file);
+                const imageURL = await storageRef.getDownloadURL();
+
+                const insertText = `\n<img src="${imageURL}" class="chapter-image">\n`;
+                chapterContent.value += insertText;
+
+                imageInput.value = "";
+            } catch (err) {
+                alert("Image upload failed: " + err.message);
+            }
+        });
+
+        const form = document.getElementById("add-chapter-form");
+
+        form.addEventListener("submit", async (e) => {
+            e.preventDefault();
+
+            const storyId = document.getElementById("chapter-story").value;
+            const title = document.getElementById("chapter-title").value.trim();
+            const content = chapterContent.value.trim();
+
+            try {
+                await firebase.firestore()
+                    .collection("stories")
+                    .doc(storyId)
+                    .collection("chapters")
+                    .add({
+                        title,
+                        content,
+                        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                        views: 0
+                    });
+
+                document.getElementById("chapter-success").textContent = "Chapter added successfully!";
+                document.getElementById("chapter-error").textContent = "";
+                form.reset();
+
+            } catch (err) {
+                document.getElementById("chapter-error").textContent = "Error: " + err.message;
+                document.getElementById("chapter-success").textContent = "";
+            }
+        });
+
+        // Load stories into dropdown
+        document.addEventListener("DOMContentLoaded", async () => {
+            const select = document.getElementById("chapter-story");
+            const snapshot = await firebase.firestore().collection("stories").orderBy("title").get();
+
+            snapshot.forEach(doc => {
+                const option = document.createElement("option");
+                option.value = doc.id;
+                option.textContent = doc.data().title;
+                select.appendChild(option);
+            });
+        });
+    </script>
+
+</body>
+</html>

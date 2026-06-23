@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>World Lore</title>
+
+    <!-- Fonts -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&display=swap">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Crimson+Pro:wght@300;400;600&display=swap">
+
+    <!-- CSS -->
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+    <!-- Header -->
+    <header>
+        <div class="logo">THE MIDNIGHT DESK</div>
+
+        <nav class="top-nav">
+            <a href="main-stories.html">MAIN STORIES</a>
+            <a href="side-stories.html">SIDE STORIES</a>
+            <a href="world-lore.html">WORLD LORE</a>
+            <a href="submission.html">SUBMISSION</a>
+            <a href="about.html">ABOUT</a>
+            <a href="search.html">SEARCH</a>
+
+            <!-- Admin Link (only visible to you) -->
+            <a id="admin-link" href="admin-dashboard.html" style="display:none;">ADMIN</a>
+        </nav>
+
+        <div id="auth-controls" style="text-align:center; margin-top:10px;">
+            <button id="logout-btn" style="display:none;">Logout</button>
+        </div>
+    </header>
+
+    <!-- Page Container -->
+    <div class="page-container">
+
+        <h1 class="admin-title">World Lore</h1>
+
+        <div id="lore-list" class="admin-list"></div>
+
+    </div>
+
+    <!-- Firebase Scripts -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-storage.js"></script>
+
+    <!-- App Logic -->
+    <script src="app.js"></script>
+
+    <!-- Load Lore Entries -->
+    <script>
+        document.addEventListener("DOMContentLoaded", async () => {
+            const container = document.getElementById("lore-list");
+
+            try {
+                const snapshot = await firebase.firestore()
+                    .collection("lore")
+                    .orderBy("title")
+                    .get();
+
+                if (snapshot.empty) {
+                    container.innerHTML = "<p>No lore entries yet.</p>";
+                    return;
+                }
+
+                snapshot.forEach(doc => {
+                    const lore = doc.data();
+                    const id = doc.id;
+
+                    const card = document.createElement("div");
+                    card.className = "admin-card";
+
+                    card.innerHTML = `
+                        <h3>${lore.title}</h3>
+                        <p>${lore.description}</p>
+                        <button onclick="toggleLore('${id}')">Read More</button>
+                        <div id="lore-body-${id}" style="display:none; margin-top:15px;">
+                            <p>${lore.body}</p>
+                            ${lore.tags ? `<p><strong>Tags:</strong> ${lore.tags}</p>` : ""}
+                        </div>
+                    `;
+
+                    container.appendChild(card);
+                });
+
+            } catch (err) {
+                container.innerHTML = "<p style='color:pink;'>Error loading lore.</p>";
+            }
+        });
+
+        function toggleLore(id) {
+            const box = document.getElementById(`lore-body-${id}`);
+            box.style.display = box.style.display === "block" ? "none" : "block";
+        }
+    </script>
+
+</body>
+</html>
