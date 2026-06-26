@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Story Hub</title>
+
+    <!-- Fonts -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&display=swap">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Crimson+Pro:wght@300;400;600&display=swap">
+
+    <!-- CSS -->
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body class="cursor-star md-background">
+
+<header>
+    <div class="logo">THE MIDNIGHT DESK</div>
+
+    <nav class="top-nav">
+        <a href="main-stories.html">MAIN STORIES</a>
+        <a href="side-stories.html">SIDE STORIES</a>
+        <a href="world-lore.html">WORLD LORE</a>
+        <a href="submission.html">SUBMISSION</a>
+        <a href="about.html">ABOUT</a>
+        <a href="search.html">SEARCH</a>
+        <a id="admin-link" href="admin-dashboard.html" class="admin-link-hidden">ADMIN</a>
+    </nav>
+
+    <div id="auth-controls" class="auth-controls">
+        <button id="logout-btn" class="logout-btn">Logout</button>
+    </div>
+</header>
+
+<div class="page-container">
+
+    <div id="story-container" class="story-hub">
+
+        <h1 id="story-title" class="story-title"></h1>
+
+        <img id="story-cover" class="story-cover hidden" alt="Story Cover">
+
+        <p id="story-description" class="story-description"></p>
+
+        <h2 class="chapter-header">Chapters</h2>
+
+        <div id="chapter-list" class="chapter-list"></div>
+
+    </div>
+
+</div>
+
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-storage.js"></script>
+
+<script src="app.js"></script>
+
+<script>
+let storyId = null;
+let user = null;
+let progressMap = {};
+
+document.addEventListener("DOMContentLoaded", async () => {
+    const params = new URLSearchParams(window.location.search);
+    storyId = params.get("id");
+
+    if (!storyId) return;
+
+    user = firebase.auth().currentUser;
+
+    if (user) {
+        await loadAllProgress();
+    }
+
+    const storyRef = firebase.firestore().collection("stories").doc(storyId);
+
+    try {
+        const storyDoc = await storyRef.get();
+        const story = storyDoc.data();
+
+        if (!story) {
+            document.getElementById("story-container").innerHTML =
+                `<p class="status-error">Story not found.</p>`;
+            return;
+        }
+
+        document.getElementById("story-title").textContent = story.title;
+        document.getElementById("story-description").textContent = story.description;
+
+        const cover = document.getElementById("story-cover");
+        if (story.coverURL) {
+            cover.src = story.coverURL;
+            cover.classList.remove("hidden");
+        }
+
+        loadChapters(storyId);
+
+    } catch (err) {
+        document.getElementById("story-container").innerHTML =
+            `<p class="status-error">Error loading story.</p>`;
+    }
+});
+
+/* LOAD ALL PROGRESS */
+async function loadAllProgress() {
+    const snap = await firebase.firestore()
+        .collection("users")
+        .doc(user.uid)
+        .collection("progress")
+        .get();
+
+    snap.forEach(doc => {
+        progressMap[doc.id] = doc.data();
+    });
+}
+
+/* LOAD CHAPTERS */
+async function loadChapters(storyId) {
+    const list = document.getElementById("chapter-list");
+    list.innerHTML = `<p class="status-loading">Loading...</p>`;
+
+    try {
+        const snapshot = await firebase.firestore()
+            .collection("stories")
+            .doc(storyId)
+            .collection("chapters")
+            .orderBy("createdAt")
+            .get();
+
+        list.innerHTML = "";
+
+        if (snapshot.empty) {
+            list.innerHTML = `<p class="status-empty">No chapters yet.</p>`;
+            return;
+        }
+
+        const now = new Date();
+
+        snapshot.forEach(doc => {
+            const chapter = doc.data();
+            const id = doc.id;
+
+            const releaseAt = chapter.releaseAt?.toDate() || new Date(0);
+            const isLocked = releaseAt > now;
+
+            const key = `${storyId}_${id}`;
+            const progress = progressMap[key] || { scrollPercent: 0, completed: false };
+
+            const percent = progress.scrollPercent || 0;
+            const completed = progress.completed;
+
+            const div = document.createElement("div");
+
+            /* LOCKED CHAPTER */
+            if (isLocked) {
+                div.className = "chapter-locked";
+                div.innerHTML = `
+                    <div class="lock-icon">🔒</div>
+                    <strong>${chapter.title}</strong>
+                    <p class="release-date">Releases on: ${releaseAt.toLocaleString()}</p>
+                `;
+                list.appendChild(div);
+                return;
+            }
+
+            /* NORMAL CHAPTER */
+            div.className = "chapter-item";
+            div.innerHTML = `
+                <a href="chapter.html?story=${storyId}&chapter=${id}" class="chapter-link">
+                    ${chapter.title}
+                </a>
+
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width:${percent}%"></div>
+                </div>
+
+                <p class="progress-status">
+                    ${completed ? "✔ Completed" : percent > 0 ? `Continue (${percent}%)` : "Not started"}
+                </p>
+            `;
+
+            list.appendChild(div);
+        });
+
+    } catch (err) {
+        list.innerHTML = `<p class="status-error">Error loading chapters.</p>`;
+    }
+}
+</script>
+
+<a href="index.html" class="btn-home">🏠 Home</a>
+
+</body>
+</html>

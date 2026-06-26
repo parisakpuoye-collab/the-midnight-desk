@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>The Midnight Desk</title>
+
+  <!-- Fonts -->
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&display=swap">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Crimson+Pro:wght@300;400;600&display=swap">
+
+  <!-- CSS -->
+  <link rel="stylesheet" href="style.css">
+
+  <!-- App Logic -->
+  <script defer src="app.js"></script>
+</head>
+
+<body class="cursor-star md-background">
+
+  <!-- Celestial Background Layer -->
+  <div class="celestial-layer">
+    <div class="star star-1"></div>
+    <div class="star star-2"></div>
+    <div class="star star-3"></div>
+  </div>
+
+  <!-- Header -->
+  <header>
+    <div class="logo">THE MIDNIGHT DESK</div>
+
+    <nav class="top-nav">
+      <a href="main-stories.html">MAIN STORIES</a>
+      <a href="side-stories.html">SIDE STORIES</a>
+      <a href="world-lore.html">WORLD LORE</a>
+      <a href="submission.html">SUBMISSION</a>
+      <a href="about.html">ABOUT</a>
+      <a href="search.html">SEARCH</a>
+
+      <!-- Notifications -->
+      <a href="notifications.html" class="notif-bell">
+        🔔 <span id="notif-count" class="notif-count"></span>
+      </a>
+
+      <!-- Admin Link -->
+      <a id="admin-link" href="admin-dashboard.html" class="admin-link-hidden">ADMIN</a>
+    </nav>
+
+    <div id="auth-controls" class="auth-controls">
+      <button id="logout-btn" class="logout-btn">Logout</button>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <div class="page-container">
+    <main id="page-content">
+
+      <!-- Welcome Section -->
+      <section class="home-block">
+        <h1>Welcome to The Midnight Desk</h1>
+        <p>Original stories about my characters in my universe.</p>
+      </section>
+
+      <!-- Featured Story -->
+      <section id="featured-story" class="home-block">
+        <h2>Featured Story</h2>
+        <div class="home-card" id="featured-story-content">
+          <p>Loading...</p>
+        </div>
+      </section>
+
+      <!-- Latest Chapter -->
+      <section id="latest-chapter" class="home-block">
+        <h2>Latest Chapter</h2>
+        <div class="home-card" id="latest-chapter-content">
+          <p>Loading...</p>
+        </div>
+      </section>
+
+      <!-- Lore Spotlight -->
+      <section id="lore-spotlight" class="home-block">
+        <h2>Lore Spotlight</h2>
+        <div class="home-card" id="lore-spotlight-content">
+          <p>Loading...</p>
+        </div>
+      </section>
+
+      <!-- Character of the Week -->
+      <section id="character-of-week" class="home-block">
+        <h2>Character of the Week</h2>
+        <div class="home-card" id="character-of-week-content">
+          <p>Loading...</p>
+        </div>
+      </section>
+
+      <!-- Community Highlights -->
+      <section id="community-highlights" class="home-block">
+        <h2>Community Highlights</h2>
+        <div class="home-card" id="community-highlights-content">
+          <p>Loading...</p>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- Firebase Scripts -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-storage.js"></script>
+
+</body>
+</html>

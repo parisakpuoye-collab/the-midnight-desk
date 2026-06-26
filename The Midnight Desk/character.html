@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Character Profile</title>
+
+    <!-- Fonts -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&display=swap">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Crimson+Pro:wght@300;400;600&display=swap">
+
+    <!-- CSS -->
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body class="cursor-star md-background">
+
+<header>
+    <div class="logo">THE MIDNIGHT DESK</div>
+
+    <nav class="top-nav">
+        <a href="index.html">HOME</a>
+        <a href="main-stories.html">MAIN STORIES</a>
+        <a href="side-stories.html">SIDE STORIES</a>
+        <a href="world-lore.html">WORLD LORE</a>
+        <a href="character-encyclopedia.html">CHARACTERS</a>
+        <a href="submission.html">SUBMISSION</a>
+        <a href="about.html">ABOUT</a>
+        <a id="admin-link" href="admin-dashboard.html" class="admin-link-hidden">ADMIN</a>
+    </nav>
+</header>
+
+<div class="page-container">
+
+    <div id="character-profile" class="character-profile">
+
+        <img id="char-portrait" class="character-portrait" alt="Character Portrait">
+
+        <h1 id="char-name" class="character-name"></h1>
+
+        <p id="char-bio" class="character-bio"></p>
+
+        <!-- Abilities -->
+        <div class="section-block">
+            <h2 class="section-title">Abilities</h2>
+            <div id="char-abilities" class="tag-container"></div>
+        </div>
+
+        <!-- Hobbies -->
+        <div class="section-block">
+            <h2 class="section-title">Hobbies</h2>
+            <div id="char-hobbies" class="tag-container"></div>
+        </div>
+
+        <!-- Likes -->
+        <div class="section-block">
+            <h2 class="section-title">Likes</h2>
+            <div id="char-likes" class="tag-container"></div>
+        </div>
+
+        <!-- Dislikes -->
+        <div class="section-block">
+            <h2 class="section-title">Dislikes</h2>
+            <div id="char-dislikes" class="tag-container"></div>
+        </div>
+
+        <!-- Traits -->
+        <div class="section-block">
+            <h2 class="section-title">Personality Traits</h2>
+            <div id="char-traits" class="tag-container"></div>
+        </div>
+
+        <!-- Fears -->
+        <div class="section-block">
+            <h2 class="section-title">Fears</h2>
+            <div id="char-fears" class="tag-container"></div>
+        </div>
+
+        <!-- Goals -->
+        <div class="section-block">
+            <h2 class="section-title">Goals</h2>
+            <div id="char-goals" class="tag-container"></div>
+        </div>
+
+        <!-- Fun Facts -->
+        <div class="section-block">
+            <h2 class="section-title">Fun Facts</h2>
+            <div id="char-funfacts" class="tag-container"></div>
+        </div>
+
+        <!-- Quotes -->
+        <div class="section-block">
+            <h2 class="section-title">Quotes</h2>
+            <div id="char-quotes" class="tag-container"></div>
+        </div>
+
+        <!-- Family -->
+        <div class="section-block">
+            <h2 class="section-title">Family</h2>
+            <div id="char-family" class="family-container"></div>
+        </div>
+
+        <!-- Relationships -->
+        <div class="section-block">
+            <h2 class="section-title">Relationships</h2>
+            <div id="char-relationships" class="family-container"></div>
+        </div>
+
+        <!-- Appears In -->
+        <div class="section-block">
+            <h2 class="section-title">Appears In</h2>
+            <div id="char-appears" class="family-container"></div>
+        </div>
+
+        <!-- Feature Button -->
+        <button id="feature-btn" class="btn-standard admin-only-btn">Feature This Character</button>
+
+    </div>
+
+</div>
+
+<a href="character-encyclopedia.html" class="btn-home">← Back to Characters</a>
+
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+
+<script src="app.js"></script>
+
+<script>
+/* -------------------------------------------------- */
+/* CHARACTER PROFILE PAGE                             */
+/* -------------------------------------------------- */
+
+const params = new URLSearchParams(window.location.search);
+const charId = params.get("id");
+
+async function loadCharacter() {
+    const doc = await db.collection("characters").doc(charId).get();
+    const data = doc.data();
+    if (!data) return;
+
+    document.getElementById("char-portrait").src = data.portraitUrl;
+    document.getElementById("char-name").textContent = data.name;
+    document.getElementById("char-bio").textContent = data.bio;
+
+    /* Helper to render tag arrays */
+    function renderTags(id, arr) {
+        const box = document.getElementById(id);
+        box.innerHTML = "";
+        (arr || []).forEach(item => {
+            const tag = document.createElement("span");
+            tag.className = "tag";
+            tag.textContent = item;
+            box.appendChild(tag);
+        });
+    }
+
+    /* Personality Arrays */
+    renderTags("char-abilities", data.abilities);
+    renderTags("char-hobbies", data.hobbies);
+    renderTags("char-likes", data.likes);
+    renderTags("char-dislikes", data.dislikes);
+    renderTags("char-traits", data.traits);
+    renderTags("char-fears", data.fears);
+    renderTags("char-goals", data.goals);
+    renderTags("char-funfacts", data.funFacts);
+    renderTags("char-quotes", data.quotes);
+
+    /* Family */
+    const famBox = document.getElementById("char-family");
+    famBox.innerHTML = "";
+    (data.family || []).forEach(f => {
+        const div = document.createElement("div");
+        div.className = "family-entry";
+        div.innerHTML = `
+            <strong>${f.name}</strong> — ${f.relation}<br>
+            <small>${f.notes || ""}</small>
+        `;
+        famBox.appendChild(div);
+    });
+
+    /* Relationships */
+    const relBox = document.getElementById("char-relationships");
+    relBox.innerHTML = "";
+    (data.relationships || []).forEach(r => {
+        const div = document.createElement("div");
+        div.className = "family-entry";
+        div.innerHTML = `
+            <strong>${r.type}:</strong> 
+            <a href="character.html?id=${r.characterId || '#'}">${r.name}</a><br>
+            <small>${r.notes || ""}</small>
+        `;
+        relBox.appendChild(div);
+    });
+
+    /* Appears In */
+    const appBox = document.getElementById("char-appears");
+    appBox.innerHTML = "";
+    (data.appearsIn || []).forEach(a => {
+        const div = document.createElement("div");
+        div.className = "family-entry";
+        div.innerHTML = `
+            <a href="story-hub.html?story=${a.storyId}">Story: ${a.storyId}</a><br>
+            <a href="chapter.html?story=${a.storyId}&chapter=${a.chapterId}">
+                Chapter: ${a.chapterId}
+            </a><br>
+            <small>Role: ${a.role}</small>
+        `;
+        appBox.appendChild(div);
+    });
+
+    /* Admin Feature Button */
+    firebase.auth().onAuthStateChanged(user => {
+        if (user && user.email.toLowerCase() === "parisakpuoye@gmail.com") {
+            document.getElementById("feature-btn").classList.add("visible");
+        }
+    });
+}
+
+/* Feature This Character */
+document.getElementById("feature-btn").addEventListener("click", async () => {
+    await db.collection("characters").doc(charId).update({
+        featuredAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+
+    alert("Character featured! It will now appear on the homepage.");
+});
+
+document.addEventListener("DOMContentLoaded", loadCharacter);
+</script>
+
+</body>
+</html>

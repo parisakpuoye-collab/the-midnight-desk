@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Side Stories</title>
+
+    <!-- Fonts -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&display=swap">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Crimson+Pro:wght@300;400;600&display=swap">
+
+    <!-- CSS -->
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body class="cursor-star md-background">
+
+<header>
+    <div class="logo">THE MIDNIGHT DESK</div>
+
+    <nav class="top-nav">
+        <a href="main-stories.html">MAIN STORIES</a>
+        <a href="side-stories.html">SIDE STORIES</a>
+        <a href="world-lore.html">WORLD LORE</a>
+        <a href="submission.html">SUBMISSION</a>
+        <a href="about.html">ABOUT</a>
+        <a href="search.html">SEARCH</a>
+
+        <!-- Notifications -->
+        <a href="notifications.html" class="notif-bell">
+            🔔 <span id="notif-count" class="notif-count"></span>
+        </a>
+
+        <!-- Admin Link -->
+        <a id="admin-link" href="admin-dashboard.html" class="admin-link-hidden">ADMIN</a>
+    </nav>
+
+    <div id="auth-controls" class="auth-controls">
+        <button id="logout-btn" class="logout-btn">Logout</button>
+    </div>
+</header>
+
+<div class="page-container">
+
+    <h1>Side Stories</h1>
+
+    <div id="side-stories-list" class="stories-grid"></div>
+
+</div>
+
+<!-- Firebase Scripts -->
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-storage.js"></script>
+
+<!-- App Logic -->
+<script src="app.js"></script>
+
+<!-- Load Side Stories -->
+<script>
+document.addEventListener("DOMContentLoaded", async () => {
+    const container = document.getElementById("side-stories-list");
+
+    try {
+        const snapshot = await firebase.firestore()
+            .collection("stories")
+            .where("category", "==", "side")
+            .orderBy("createdAt", "desc")
+            .get();
+
+        if (snapshot.empty) {
+            container.innerHTML = `<p class="status-empty">No side stories yet.</p>`;
+            return;
+        }
+
+        snapshot.forEach(doc => {
+            const story = doc.data();
+            const id = doc.id;
+
+            const card = document.createElement("div");
+            card.className = "story-card";
+
+            card.innerHTML = `
+                <img src="${story.coverURL || 'placeholder.jpg'}" alt="${story.title}" class="story-cover">
+                <h3 class="story-title">${story.title}</h3>
+                <p class="story-description">${story.description}</p>
+                <a href="story-hub.html?id=${id}&type=side" class="story-btn">View Story</a>
+            `;
+
+            container.appendChild(card);
+        });
+
+    } catch (err) {
+        container.innerHTML = `<p class="status-error">Error loading side stories.</p>`;
+    }
+});
+</script>
+
+<!-- Return Home Button -->
+<a href="index.html" class="btn-home">🏠 Home</a>
+
+</body>
+</html>

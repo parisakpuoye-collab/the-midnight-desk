@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add Character</title>
+
+    <!-- Fonts -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&display=swap">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Crimson+Pro:wght@300;400;600&display=swap">
+
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body class="cursor-star md-background">
+
+<header>
+    <div class="logo">THE MIDNIGHT DESK</div>
+
+    <nav class="top-nav">
+        <a href="admin-dashboard.html">ADMIN HOME</a>
+        <a href="character-encyclopedia.html">CHARACTERS</a>
+    </nav>
+</header>
+
+<div class="page-container">
+
+    <h1 class="admin-title">Add Character</h1>
+
+    <form id="add-character-form">
+
+        <!-- NAME -->
+        <label for="char-name">Character Name</label>
+        <input type="text" id="char-name" required placeholder="Enter character name">
+
+        <!-- PORTRAIT -->
+        <label for="char-portrait-file">Portrait Image</label>
+        <input type="file" id="char-portrait-file" accept="image/*">
+        <button type="button" id="upload-portrait-btn" class="btn-standard">Upload Portrait</button>
+        <p id="portrait-status" class="success-text"></p>
+
+        <!-- BIO -->
+        <div class="glass-panel">
+            <div class="panel-header">
+                🌙 Bio
+                <span class="panel-arrow open">▶</span>
+            </div>
+            <div class="panel-content open">
+                <textarea id="char-bio" required placeholder="Write character bio..."></textarea>
+            </div>
+        </div>
+
+        <!-- ABILITIES -->
+        <div class="glass-panel">
+            <div class="panel-header">
+                🌙 Abilities
+                <span class="panel-arrow">▶</span>
+            </div>
+            <div class="panel-content" id="abilities-panel">
+                <input type="text" id="ability-input" placeholder="Add ability...">
+                <button type="button" id="add-ability-btn" class="btn-standard">Add</button>
+                <div id="ability-list"></div>
+            </div>
+        </div>
+
+        <!-- PERSONALITY SECTIONS -->
+        <div class="glass-panel">
+            <div class="panel-header">
+                🌙 Hobbies
+                <span class="panel-arrow">▶</span>
+            </div>
+            <div class="panel-content">
+                <input type="text" id="hobby-input" placeholder="Add hobby...">
+                <button type="button" id="add-hobby-btn" class="btn-standard">Add</button>
+                <div id="hobby-list"></div>
+            </div>
+        </div>
+
+        <div class="glass-panel">
+            <div class="panel-header">
+                🌙 Likes
+                <span class="panel-arrow">▶</span>
+            </div>
+            <div class="panel-content">
+                <input type="text" id="like-input" placeholder="Add like...">
+                <button type="button" id="add-like-btn" class="btn-standard">Add</button>
+                <div id="like-list"></div>
+            </div>
+        </div>
+
+        <div class="glass-panel">
+            <div class="panel-header">
+                🌙 Dislikes
+                <span class="panel-arrow">▶</span>
+            </div>
+            <div class="panel-content">
+                <input type="text" id="dislike-input" placeholder="Add dislike...">
+                <button type="button" id="add-dislike-btn" class="btn-standard">Add</button>
+                <div id="dislike-list"></div>
+            </div>
+        </div>
+
+        <div class="glass-panel">
+            <div class="panel-header">
+                🌙 Personality Traits
+                <span class="panel-arrow">▶</span>
+            </div>
+            <div class="panel-content">
+                <input type="text" id="trait-input" placeholder="Add trait...">
+                <button type="button" id="add-trait-btn" class="btn-standard">Add</button>
+                <div id="trait-list"></div>
+            </div>
+        </div>
+
+        <div class="glass-panel">
+            <div class="panel-header">
+                🌙 Fears
+                <span class="panel-arrow">▶</span>
+            </div>
+            <div class="panel-content">
+                <input type="text" id="fear-input" placeholder="Add fear...">
+                <button type="button" id="add-fear-btn" class="btn-standard">Add</button>
+                <div id="fear-list"></div>
+            </div>
+        </div>
+
+        <div class="glass-panel">
+            <div class="panel-header">
+                🌙 Goals
+                <span class="panel-arrow">▶</span>
+            </div>
+            <div class="panel-content">
+                <input type="text" id="goal-input" placeholder="Add goal...">
+                <button type="button" id="add-goal-btn" class="btn-standard">Add</button>
+                <div id="goal-list"></div>
+            </div>
+        </div>
+
+        <div class="glass-panel">
+            <div class="panel-header">
+                🌙 Fun Facts
+                <span class="panel-arrow">▶</span>
+            </div>
+            <div class="panel-content">
+                <input type="text" id="funfact-input" placeholder="Add fun fact...">
+                <button type="button" id="add-funfact-btn" class="btn-standard">Add</button>
+                <div id="funfact-list"></div>
+            </div>
+        </div>
+
+        <div class="glass-panel">
+            <div class="panel-header">
+                🌙 Quotes
+                <span class="panel-arrow">▶</span>
+            </div>
+            <div class="panel-content">
+                <input type="text" id="quote-input" placeholder="Add quote...">
+                <button type="button" id="add-quote-btn" class="btn-standard">Add</button>
+                <div id="quote-list"></div>
+            </div>
+        </div>
+
+        <!-- FAMILY -->
+        <div class="glass-panel">
+            <div class="panel-header">
+                🌙 Family
+                <span class="panel-arrow">▶</span>
+            </div>
+            <div class="panel-content" id="family-panel">
+                <button type="button" id="add-family-btn" class="btn-standard">Add Family Member</button>
+                <div id="family-list"></div>
+            </div>
+        </div>
+
+        <!-- RELATIONSHIPS -->
+        <div class="glass-panel">
+            <div class="panel-header">
+                🌙 Relationships
+                <span class="panel-arrow">▶</span>
+            </div>
+            <div class="panel-content" id="relationship-panel">
+                <button type="button" id="add-relationship-btn" class="btn-standard">Add Relationship</button>
+                <div id="relationship-list"></div>
+            </div>
+        </div>
+
+        <!-- APPEARS IN -->
+        <div class="glass-panel">
+            <div class="panel-header">
+                🌙 Appears In
+                <span class="panel-arrow">▶</span>
+            </div>
+            <div class="panel-content" id="appears-panel">
+                <button type="button" id="add-appearance-btn" class="btn-standard">Add Appearance</button>
+                <div id="appears-list"></div>
+            </div>
+        </div>
+
+        <button type="submit" class="btn-submit">Add Character</button>
+
+        <p id="char-success" class="success-text"></p>
+        <p id="char-error" class="error-text"></p>
+
+    </form>
+
+</div>
+
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-storage.js"></script>
+
+<script src="app.js"></script>
+
+<script>
+/* -------------------------------------------------- */
+/* COLLAPSIBLE PANELS                                 */
+/* -------------------------------------------------- */
+
+document.querySelectorAll(".panel-header").forEach(header => {
+    header.addEventListener("click", () => {
+        const content = header.nextElementSibling;
+        const arrow = header.querySelector(".panel-arrow");
+
+        content.classList.toggle("open");
+        arrow.classList.toggle("open");
+    });
+});
+
+/* -------------------------------------------------- */
+/* PORTRAIT UPLOAD                                    */
+/* -------------------------------------------------- */
+
+let portraitUrl = "";
+
+document.getElementById("upload-portrait-btn").addEventListener("click", async () => {
+    const file = document.getElementById("char-portrait-file").files[0];
+    if (!file) return alert("Select an image first.");
+
+    try {
+        const ref = firebase.storage().ref("character-portraits/" + Date.now() + "-" + file.name);
+        await ref.put(file);
+        portraitUrl = await ref.getDownloadURL();
+        document.getElementById("portrait-status").textContent = "Portrait uploaded!";
+    } catch (err) {
+        alert("Upload failed: " + err.message);
+    }
+});
+
+/* -------------------------------------------------- */
+/* TAG LIST HELPERS                                   */
+/* -------------------------------------------------- */
+
+function setupTagInput(inputId, addBtnId, listId, array) {
+    document.getElementById(addBtnId).addEventListener("click", () => {
+        const value = document.getElementById(inputId).value.trim();
+        if (!value) return;
+        array.push(value);
+        document.getElementById(inputId).value = "";
+        renderTagList(listId, array);
+    });
+}
+
+function renderTagList(listId, array) {
+    const box = document.getElementById(listId);
+    box.innerHTML = "";
+    array.forEach((item, i) => {
+        const tag = document.createElement("span");
+        tag.className = "tag";
+        tag.textContent = item;
+
+        const remove = document.createElement("button");
+        remove.className = "remove-btn";
+        remove.textContent = "x";
+        remove.onclick = () => {
+            array.splice(i, 1);
+            renderTagList(listId, array);
+        };
+
+        const wrap = document.createElement("div");
+        wrap.appendChild(tag);
+        wrap.appendChild(remove);
+
+        box.appendChild(wrap);
+    });
+}
+
+/* PERSONALITY ARRAYS */
+let abilities = [];
+let hobbies = [];
+let likes = [];
+let dislikes = [];
+let traits = [];
+let fears = [];
+let goals = [];
+let funFacts = [];
+let quotes = [];
+
+/* SETUP TAG INPUTS */
+setupTagInput("ability-input", "add-ability-btn", "ability-list", abilities);
+setupTagInput("hobby-input", "add-hobby-btn", "hobby-list", hobbies);
+setupTagInput("like-input", "add-like-btn", "like-list", likes);
+setupTagInput("dislike-input", "add-dislike-btn", "dislike-list", dislikes);
+setupTagInput("trait-input", "add-trait-btn", "trait-list", traits);
+setupTagInput("fear-input", "add-fear-btn", "fear-list", fears);
+setupTagInput("goal-input", "add-goal-btn", "goal-list", goals);
+setupTagInput("funfact-input", "add-funfact-btn", "funfact-list", funFacts);
+setupTagInput("quote-input", "add-quote-btn", "quote-list", quotes);
+
+/* -------------------------------------------------- */
+/* FAMILY                                             */
+/* -------------------------------------------------- */
+
+let family = [];
+
+document.getElementById("add-family-btn").addEventListener("click", () => {
+    const container = document.getElementById("family-list");
+
+    const block = document.createElement("div");
+    block.className = "family-entry";
+
+    block.innerHTML = `
+        <input type="text" placeholder="Name" class="fam-name">
+        <input type="text" placeholder="Relation" class="fam-relation">
+        <input type="text" placeholder="Notes" class="fam-notes">
+        <input type="text" placeholder="Character ID (optional)" class="fam-id">
+        <button type="button" class="remove-btn">Remove</button>
+    `;
+
+    block.querySelector(".remove-btn").onclick = () => block.remove();
+
+    container.appendChild(block);
+});
+
+/* -------------------------------------------------- */
+/* RELATIONSHIPS                                      */
+/* -------------------------------------------------- */
+
+let relationships = [];
+
+document.getElementById("add-relationship-btn").addEventListener("click", () => {
+    const container = document.getElementById("relationship-list");
+
+    const block = document.createElement("div");
+    block.className = "family-entry";
+
+    block.innerHTML = `
+        <input type="text" placeholder="Name" class="rel-name">
+        <input type="text" placeholder="Type (e.g., sibling, rival)" class="rel-type">
+        <input type="text" placeholder="Notes" class="rel-notes">
+        <input type="text" placeholder="Character ID (optional)" class="rel-id">
+        <button type="button" class="remove-btn">Remove</button>
+    `;
+
+    block.querySelector(".remove-btn").onclick = () => block.remove();
+
+    container.appendChild(block);
+});
+
+/* -------------------------------------------------- */
+/* APPEARS IN                                         */
+/* -------------------------------------------------- */
+
+let appearances = [];
+
+document.getElementById("add-appearance-btn").addEventListener("click", async () => {
+    const container = document.getElementById("appears-list");
+
+    const block = document.createElement("div");
+    block.className = "family-entry";
+
+    block.innerHTML = `
+        <select class="appear-story" title="Select story"></select>
+        <select class="appear-chapter" title="Select chapter"><option>Select story first</option></select>
+        <input type="text" placeholder="Role (Main, Cameo...)" class="appear-role">
+        <button type="button" class="remove-btn">Remove</button>
+    `;
+
+    block.querySelector(".remove-btn").onclick = () => block.remove();
+
+    container.appendChild(block);
+
+    /* Load stories */
+    const storySelect = block.querySelector(".appear-story");
+    const chapterSelect = block.querySelector(".appear-chapter");
+
+    const storySnap = await db.collection("stories").orderBy("title").get();
+    storySnap.forEach(doc => {
+        const opt = document.createElement("option");
+        opt.value = doc.id;
+        opt.textContent = doc.data().title;
+        storySelect.appendChild(opt);
+    });
+
+    /* Load chapters when story changes */
+    storySelect.addEventListener("change", async () => {
+        chapterSelect.innerHTML = "";
+        const snap = await db.collection("stories").doc(storySelect.value).collection("chapters").get();
+        snap.forEach(doc => {
+            const opt = document.createElement("option");
+            opt.value = doc.id;
+            opt.textContent = doc.data().title;
+            chapterSelect.appendChild(opt);
+        });
+    });
+});
+
+/* -------------------------------------------------- */
+/* SUBMIT CHARACTER                                   */
+/* -------------------------------------------------- */
+
+document.getElementById("add-character-form").addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    const name = document.getElementById("char-name").value.trim();
+    const bio = document.getElementById("char-bio").value.trim();
+
+    /* Collect family */
+    family = [];
+    document.querySelectorAll(".family-entry").forEach(block => {
+        family.push({
+            name: block.querySelector(".fam-name").value,
+            relation: block.querySelector(".fam-relation").value,
+            notes: block.querySelector(".fam-notes").value,
+            characterId: block.querySelector(".fam-id").value || null
+        });
+    });
+
+    /* Collect relationships */
+    relationships = [];
+    document.querySelectorAll("#relationship-list .family-entry").forEach(block => {
+        relationships.push({
+            name: block.querySelector(".rel-name").value,
+            type: block.querySelector(".rel-type").value,
+            notes: block.querySelector(".rel-notes").value,
+            characterId: block.querySelector(".rel-id").value || null
+        });
+    });
+
+    /* Collect appearances */
+    appearances = [];
+    document.querySelectorAll("#appears-list .family-entry").forEach(block => {
+        appearances.push({
+            storyId: block.querySelector(".appear-story").value,
+            chapterId: block.querySelector(".appear-chapter").value,
+            role: block.querySelector(".appear-role").value
+        });
+    });
+
+    try {
+        await db.collection("characters").add({
+            name,
+            portraitUrl,
+            bio,
+            abilities,
+            hobbies,
+            likes,
+            dislikes,
+            traits,
+            fears,
+            goals,
+            funFacts,
+            quotes,
+            family,
+            relationships,
+            appearsIn: appearances,
+            featuredAt: null,
+            createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+
+        document.getElementById("char-success").textContent = "Character added successfully!";
+        document.getElementById("char-error").textContent = "";
+
+        e.target.reset();
+
+    } catch (err) {
+        document.getElementById("char-error").textContent = err.message;
+        document.getElementById("char-success").textContent = "";
+    }
+});
+</script>
+
+</body>
+</html>

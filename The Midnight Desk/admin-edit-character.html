@@ -1,0 +1,607 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Character</title>
+
+    <!-- Fonts -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&display=swap">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Crimson+Pro:wght@300;400;600&display=swap">
+
+    <!-- CSS -->
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body class="cursor-star md-background">
+
+<header>
+    <div class="logo">THE MIDNIGHT DESK</div>
+
+    <nav class="top-nav">
+        <a href="admin-dashboard.html">ADMIN HOME</a>
+        <a href="character-encyclopedia.html">CHARACTERS</a>
+    </nav>
+</header>
+
+<div class="page-container">
+
+    <h1 class="admin-title">Edit Character</h1>
+
+    <form id="edit-character-form">
+
+        <!-- NAME -->
+        <label for="char-name">Character Name</label>
+        <input type="text" id="char-name" required placeholder="Enter character name">
+
+        <!-- PORTRAIT -->
+        <label for="char-portrait-file">Portrait Image</label>
+        <img id="current-portrait" alt="Current character portrait" class="portrait-preview">
+        <input type="file" id="char-portrait-file" accept="image/*">
+        <button type="button" id="upload-portrait-btn" class="btn-standard">Upload New Portrait</button>
+        <p id="portrait-status" class="status-success"></p>
+
+        <!-- BIO -->
+        <div class="glass-panel">
+            <div class="panel-header">
+                🌙 Bio
+                <span class="panel-arrow open">▶</span>
+            </div>
+            <div class="panel-content open">
+                <textarea id="char-bio" required placeholder="Write character bio..."></textarea>
+            </div>
+        </div>
+
+        <!-- ABILITIES -->
+        <div class="glass-panel">
+            <div class="panel-header">
+                🌙 Abilities
+                <span class="panel-arrow">▶</span>
+            </div>
+            <div class="panel-content">
+                <input type="text" id="ability-input" placeholder="Add ability...">
+                <button type="button" id="add-ability-btn" class="btn-standard">Add</button>
+                <div id="ability-list"></div>
+            </div>
+        </div>
+
+        <!-- HOBBIES -->
+        <div class="glass-panel">
+            <div class="panel-header">
+                🌙 Hobbies
+                <span class="panel-arrow">▶</span>
+            </div>
+            <div class="panel-content">
+                <input type="text" id="hobby-input" placeholder="Add hobby...">
+                <button type="button" id="add-hobby-btn" class="btn-standard">Add</button>
+                <div id="hobby-list"></div>
+            </div>
+        </div>
+
+        <!-- LIKES -->
+        <div class="glass-panel">
+            <div class="panel-header">
+                🌙 Likes
+                <span class="panel-arrow">▶</span>
+            </div>
+            <div class="panel-content">
+                <input type="text" id="like-input" placeholder="Add like...">
+                <button type="button" id="add-like-btn" class="btn-standard">Add</button>
+                <div id="like-list"></div>
+            </div>
+        </div>
+
+        <!-- DISLIKES -->
+        <div class="glass-panel">
+            <div class="panel-header">
+                🌙 Dislikes
+                <span class="panel-arrow">▶</span>
+            </div>
+            <div class="panel-content">
+                <input type="text" id="dislike-input" placeholder="Add dislike...">
+                <button type="button" id="add-dislike-btn" class="btn-standard">Add</button>
+                <div id="dislike-list"></div>
+            </div>
+        </div>
+
+        <!-- TRAITS -->
+        <div class="glass-panel">
+            <div class="panel-header">
+                🌙 Personality Traits
+                <span class="panel-arrow">▶</span>
+            </div>
+            <div class="panel-content">
+                <input type="text" id="trait-input" placeholder="Add trait...">
+                <button type="button" id="add-trait-btn" class="btn-standard">Add</button>
+                <div id="trait-list"></div>
+            </div>
+        </div>
+
+        <!-- FEARS -->
+        <div class="glass-panel">
+            <div class="panel-header">
+                🌙 Fears
+                <span class="panel-arrow">▶</span>
+            </div>
+            <div class="panel-content">
+                <input type="text" id="fear-input" placeholder="Add fear...">
+                <button type="button" id="add-fear-btn" class="btn-standard">Add</button>
+                <div id="fear-list"></div>
+            </div>
+        </div>
+
+        <!-- GOALS -->
+        <div class="glass-panel">
+            <div class="panel-header">
+                🌙 Goals
+                <span class="panel-arrow">▶</span>
+            </div>
+            <div class="panel-content">
+                <input type="text" id="goal-input" placeholder="Add goal...">
+                <button type="button" id="add-goal-btn" class="btn-standard">Add</button>
+                <div id="goal-list"></div>
+            </div>
+        </div>
+
+        <!-- FUN FACTS -->
+        <div class="glass-panel">
+            <div class="panel-header">
+                🌙 Fun Facts
+                <span class="panel-arrow">▶</span>
+            </div>
+            <div class="panel-content">
+                <input type="text" id="funfact-input" placeholder="Add fun fact...">
+                <button type="button" id="add-funfact-btn" class="btn-standard">Add</button>
+                <div id="funfact-list"></div>
+            </div>
+        </div>
+
+        <!-- QUOTES -->
+        <div class="glass-panel">
+            <div class="panel-header">
+                🌙 Quotes
+                <span class="panel-arrow">▶</span>
+            </div>
+            <div class="panel-content">
+                <input type="text" id="quote-input" placeholder="Add quote...">
+                <button type="button" id="add-quote-btn" class="btn-standard">Add</button>
+                <div id="quote-list"></div>
+            </div>
+        </div>
+
+        <!-- FAMILY -->
+        <div class="glass-panel">
+            <div class="panel-header">
+                🌙 Family
+                <span class="panel-arrow">▶</span>
+            </div>
+            <div class="panel-content">
+                <button type="button" id="add-family-btn" class="btn-standard">Add Family Member</button>
+                <div id="family-list"></div>
+            </div>
+        </div>
+
+        <!-- RELATIONSHIPS -->
+        <div class="glass-panel">
+            <div class="panel-header">
+                🌙 Relationships
+                <span class="panel-arrow">▶</span>
+            </div>
+            <div class="panel-content">
+                <button type="button" id="add-relationship-btn" class="btn-standard">Add Relationship</button>
+                <div id="relationship-list"></div>
+            </div>
+        </div>
+
+        <!-- APPEARS IN -->
+        <div class="glass-panel">
+            <div class="panel-header">
+                🌙 Appears In
+                <span class="panel-arrow">▶</span>
+            </div>
+            <div class="panel-content">
+                <button type="button" id="add-appearance-btn" class="btn-standard">Add Appearance</button>
+                <div id="appears-list"></div>
+            </div>
+        </div>
+
+        <button type="submit" class="btn-submit section-spacer">Save Changes</button>
+
+        <p id="char-success" class="status-success"></p>
+        <p id="char-error" class="status-error"></p>
+
+    </form>
+
+</div>
+
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-storage.js"></script>
+
+<script src="app.js"></script>
+
+<script>
+/* -------------------------------------------------- */
+/* COLLAPSIBLE PANELS                                 */
+/* -------------------------------------------------- */
+
+document.querySelectorAll(".panel-header").forEach(header => {
+    header.addEventListener("click", () => {
+        const content = header.nextElementSibling;
+        const arrow = header.querySelector(".panel-arrow");
+
+        content.classList.toggle("open");
+        arrow.classList.toggle("open");
+    });
+});
+
+/* -------------------------------------------------- */
+/* LOAD CHARACTER DATA                                */
+/* -------------------------------------------------- */
+
+const params = new URLSearchParams(window.location.search);
+const charId = params.get("id");
+
+let portraitUrl = "";
+let abilities = [];
+let hobbies = [];
+let likes = [];
+let dislikes = [];
+let traits = [];
+let fears = [];
+let goals = [];
+let funFacts = [];
+let quotes = [];
+let family = [];
+let relationships = [];
+let appearances = [];
+
+async function loadCharacter() {
+    try {
+        const doc = await db.collection("characters").doc(charId).get();
+        if (!doc.exists) {
+            document.getElementById("char-error").textContent = "Character not found.";
+            return;
+        }
+
+        const data = doc.data();
+
+        document.getElementById("char-name").value = data.name || "";
+        document.getElementById("char-bio").value = data.bio || "";
+        document.getElementById("current-portrait").src = data.portraitUrl || "";
+        portraitUrl = data.portraitUrl || "";
+
+        abilities = data.abilities || [];
+        hobbies = data.hobbies || [];
+        likes = data.likes || [];
+        dislikes = data.dislikes || [];
+        traits = data.traits || [];
+        fears = data.fears || [];
+        goals = data.goals || [];
+        funFacts = data.funFacts || [];
+        quotes = data.quotes || [];
+        family = data.family || [];
+        relationships = data.relationships || [];
+        appearances = data.appearsIn || [];
+
+        renderAllLists();
+    } catch (err) {
+        document.getElementById("char-error").textContent = "Error loading character.";
+    }
+}
+
+function renderAllLists() {
+    renderTagList("ability-list", abilities);
+    renderTagList("hobby-list", hobbies);
+    renderTagList("like-list", likes);
+    renderTagList("dislike-list", dislikes);
+    renderTagList("trait-list", traits);
+    renderTagList("fear-list", fears);
+    renderTagList("goal-list", goals);
+    renderTagList("funfact-list", funFacts);
+    renderTagList("quote-list", quotes);
+
+    renderFamilyList();
+    renderRelationshipList();
+    renderAppearanceList();
+}
+
+/* -------------------------------------------------- */
+/* TAG INPUT SETUP                                    */
+/* -------------------------------------------------- */
+
+function setupTagInput(inputId, addBtnId, listId, array) {
+    document.getElementById(addBtnId).addEventListener("click", () => {
+        const value = document.getElementById(inputId).value.trim();
+        if (!value) return;
+        array.push(value);
+        document.getElementById(inputId).value = "";
+        renderTagList(listId, array);
+    });
+}
+
+function renderTagList(listId, array) {
+    const box = document.getElementById(listId);
+    box.innerHTML = "";
+    array.forEach((item, i) => {
+        const tag = document.createElement("span");
+        tag.className = "tag";
+        tag.textContent = item;
+
+        const remove = document.createElement("button");
+        remove.className = "remove-btn";
+        remove.textContent = "x";
+        remove.onclick = () => {
+            array.splice(i, 1);
+            renderTagList(listId, array);
+        };
+
+        const wrap = document.createElement("div");
+        wrap.className = "tag-wrapper";
+        wrap.appendChild(tag);
+        wrap.appendChild(remove);
+
+        box.appendChild(wrap);
+    });
+}
+
+/* SETUP TAG INPUTS */
+setupTagInput("ability-input", "add-ability-btn", "ability-list", abilities);
+setupTagInput("hobby-input", "add-hobby-btn", "hobby-list", hobbies);
+setupTagInput("like-input", "add-like-btn", "like-list", likes);
+setupTagInput("dislike-input", "add-dislike-btn", "dislike-list", dislikes);
+setupTagInput("trait-input", "add-trait-btn", "trait-list", traits);
+setupTagInput("fear-input", "add-fear-btn", "fear-list", fears);
+setupTagInput("goal-input", "add-goal-btn", "goal-list", goals);
+setupTagInput("funfact-input", "add-funfact-btn", "funfact-list", funFacts);
+setupTagInput("quote-input", "add-quote-btn", "quote-list", quotes);
+
+/* -------------------------------------------------- */
+/* FAMILY                                             */
+/* -------------------------------------------------- */
+
+function renderFamilyList() {
+    const container = document.getElementById("family-list");
+    container.innerHTML = "";
+
+    family.forEach((f, i) => {
+        const block = document.createElement("div");
+        block.className = "family-entry";
+
+        block.innerHTML = `
+            <input type="text" value="${f.name || ""}" class="fam-name" placeholder="Name">
+            <input type="text" value="${f.relation || ""}" class="fam-relation" placeholder="Relation">
+            <input type="text" value="${f.notes || ""}" class="fam-notes" placeholder="Notes">
+            <input type="text" value="${f.characterId || ""}" class="fam-id" placeholder="Linked character ID (optional)">
+            <button type="button" class="remove-btn">Remove</button>
+        `;
+
+        block.querySelector(".remove-btn").onclick = () => {
+            family.splice(i, 1);
+            renderFamilyList();
+        };
+
+        container.appendChild(block);
+    });
+}
+
+document.getElementById("add-family-btn").addEventListener("click", () => {
+    family.push({ name: "", relation: "", notes: "", characterId: null });
+    renderFamilyList();
+});
+
+/* -------------------------------------------------- */
+/* RELATIONSHIPS                                      */
+/* -------------------------------------------------- */
+
+function renderRelationshipList() {
+    const container = document.getElementById("relationship-list");
+    container.innerHTML = "";
+
+    relationships.forEach((r, i) => {
+        const block = document.createElement("div");
+        block.className = "family-entry";
+
+        block.innerHTML = `
+            <input type="text" value="${r.name || ""}" class="rel-name" placeholder="Name">
+            <input type="text" value="${r.type || ""}" class="rel-type" placeholder="Relationship type">
+            <input type="text" value="${r.notes || ""}" class="rel-notes" placeholder="Notes">
+            <input type="text" value="${r.characterId || ""}" class="rel-id" placeholder="Linked character ID (optional)">
+            <button type="button" class="remove-btn">Remove</button>
+        `;
+
+        block.querySelector(".remove-btn").onclick = () => {
+            relationships.splice(i, 1);
+            renderRelationshipList();
+        };
+
+        container.appendChild(block);
+    });
+}
+
+document.getElementById("add-relationship-btn").addEventListener("click", () => {
+    relationships.push({ name: "", type: "", notes: "", characterId: null });
+    renderRelationshipList();
+});
+
+/* -------------------------------------------------- */
+/* APPEARANCES                                        */
+/* -------------------------------------------------- */
+
+async function renderAppearanceList() {
+    const container = document.getElementById("appears-list");
+    container.innerHTML = "";
+
+    for (let i = 0; i < appearances.length; i++) {
+        const a = appearances[i];
+
+        const block = document.createElement("div");
+        block.className = "family-entry";
+
+        block.innerHTML = `
+            <select class="appear-story"></select>
+            <select class="appear-chapter"></select>
+            <input type="text" value="${a.role || ""}" class="appear-role" placeholder="Role in story">
+            <button type="button" class="remove-btn">Remove</button>
+        `;
+
+        const storySelect = block.querySelector(".appear-story");
+        const chapterSelect = block.querySelector(".appear-chapter");
+
+        block.querySelector(".remove-btn").onclick = () => {
+            appearances.splice(i, 1);
+            renderAppearanceList();
+        };
+
+        container.appendChild(block);
+
+        /* Load stories */
+        const storySnap = await db.collection("stories").orderBy("title").get();
+        storySelect.innerHTML = "";
+        storySnap.forEach(doc => {
+            const opt = document.createElement("option");
+            opt.value = doc.id;
+            opt.textContent = doc.data().title;
+            storySelect.appendChild(opt);
+        });
+
+        // Pre-select story
+        if (a.storyId) {
+            storySelect.value = a.storyId;
+        }
+
+        /* Load chapters for selected story */
+        if (storySelect.value) {
+            const chapterSnap = await db.collection("stories").doc(storySelect.value).collection("chapters").get();
+            chapterSelect.innerHTML = "";
+            chapterSnap.forEach(doc => {
+                const opt = document.createElement("option");
+                opt.value = doc.id;
+                opt.textContent = doc.data().title;
+                chapterSelect.appendChild(opt);
+            });
+
+            // Pre-select chapter
+            if (a.chapterId) {
+                chapterSelect.value = a.chapterId;
+            }
+        }
+
+        /* Update chapter list when story changes */
+        storySelect.addEventListener("change", async () => {
+            chapterSelect.innerHTML = "";
+            const snap = await db.collection("stories").doc(storySelect.value).collection("chapters").get();
+            snap.forEach(doc => {
+    const opt = document.createElement("option");
+    opt.value = doc.id;
+    opt.textContent = doc.data().title;
+                chapterSelect.appendChild(opt);
+            });
+        });
+    }
+}
+
+document.getElementById("add-appearance-btn").addEventListener("click", () => {
+    appearances.push({ storyId: "", chapterId: "", role: "" });
+    renderAppearanceList();
+});
+
+/* -------------------------------------------------- */
+/* PORTRAIT UPLOAD                                    */
+/* -------------------------------------------------- */
+
+document.getElementById("upload-portrait-btn").addEventListener("click", async () => {
+    const file = document.getElementById("char-portrait-file").files[0];
+    if (!file) return alert("Select an image first.");
+
+    try {
+        const ref = firebase.storage().ref("character-portraits/" + Date.now() + "-" + file.name);
+        await ref.put(file);
+        portraitUrl = await ref.getDownloadURL();
+        document.getElementById("portrait-status").textContent = "Portrait updated!";
+    } catch (err) {
+        alert("Upload failed: " + err.message);
+    }
+});
+
+/* -------------------------------------------------- */
+/* SAVE CHANGES                                       */
+/* -------------------------------------------------- */
+
+document.getElementById("edit-character-form").addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    const name = document.getElementById("char-name").value.trim();
+    const bio = document.getElementById("char-bio").value.trim();
+
+    /* Collect updated family */
+    family = [];
+    document.querySelectorAll("#family-list .family-entry").forEach(block => {
+        family.push({
+            name: block.querySelector(".fam-name").value,
+            relation: block.querySelector(".fam-relation").value,
+            notes: block.querySelector(".fam-notes").value,
+            characterId: block.querySelector(".fam-id").value || null
+        });
+    });
+
+    /* Collect updated relationships */
+    relationships = [];
+    document.querySelectorAll("#relationship-list .family-entry").forEach(block => {
+        relationships.push({
+            name: block.querySelector(".rel-name").value,
+            type: block.querySelector(".rel-type").value,
+            notes: block.querySelector(".rel-notes").value,
+            characterId: block.querySelector(".rel-id").value || null
+        });
+    });
+
+    /* Collect updated appearances */
+    appearances = [];
+    document.querySelectorAll("#appears-list .family-entry").forEach(block => {
+        appearances.push({
+            storyId: block.querySelector(".appear-story").value,
+            chapterId: block.querySelector(".appear-chapter").value,
+            role: block.querySelector(".appear-role").value
+        });
+    });
+
+    try {
+        await db.collection("characters").doc(charId).update({
+            name,
+            portraitUrl,
+            bio,
+            abilities,
+            hobbies,
+            likes,
+            dislikes,
+            traits,
+            fears,
+            goals,
+            funFacts,
+            quotes,
+            family,
+            relationships,
+            appearsIn: appearances,
+            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+
+        document.getElementById("char-success").textContent = "Character updated successfully!";
+        document.getElementById("char-error").textContent = "";
+    } catch (err) {
+        document.getElementById("char-error").textContent = err.message;
+        document.getElementById("char-success").textContent = "";
+    }
+});
+
+/* -------------------------------------------------- */
+/* INIT                                               */
+/* -------------------------------------------------- */
+
+document.addEventListener("DOMContentLoaded", loadCharacter);
+</script>
+
+</body>
+</html>

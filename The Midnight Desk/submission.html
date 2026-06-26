@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Community Feed</title>
+
+    <!-- Fonts -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&display=swap">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Crimson+Pro:wght@300;400;600&display=swap">
+
+    <!-- CSS -->
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body class="cursor-star md-background">
+
+<header>
+    <div class="logo">THE MIDNIGHT DESK</div>
+
+    <nav class="top-nav">
+        <a href="main-stories.html">MAIN STORIES</a>
+        <a href="side-stories.html">SIDE STORIES</a>
+        <a href="world-lore.html">WORLD LORE</a>
+        <a href="submission.html">SUBMISSION</a>
+        <a href="about.html">ABOUT</a>
+        <a href="search.html">SEARCH</a>
+
+        <!-- Notifications -->
+        <a href="notifications.html" class="notif-bell">
+            🔔 <span id="notif-count" class="notif-count"></span>
+        </a>
+
+        <!-- Admin Link -->
+        <a id="admin-link" href="admin-dashboard.html" class="admin-link-hidden">ADMIN</a>
+    </nav>
+
+    <div id="auth-controls" class="auth-controls">
+        <button id="logout-btn" class="logout-btn">Logout</button>
+    </div>
+</header>
+
+<div class="page-container">
+
+    <!-- New Post Form -->
+    <form id="new-post-form" class="post-form">
+
+        <label for="post-text" class="visually-hidden">Post Text</label>
+        <textarea id="post-text" class="post-textarea" placeholder="Share your thoughts..." required></textarea>
+
+        <label for="post-image-file" class="form-label">Upload Image (optional)</label>
+        <input type="file" id="post-image-file" class="form-input" accept="image/*">
+
+        <button type="submit" class="btn-standard post-submit-btn">Post</button>
+    </form>
+
+    <!-- Feed -->
+    <div id="feed" class="feed-container"></div>
+
+</div>
+
+<!-- Firebase Scripts -->
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-storage.js"></script>
+
+<!-- App Logic -->
+<script src="app.js"></script>
+
+<!-- Return Home Button -->
+<a href="index.html" class="btn-home">🏠 Home</a>
+
+<!-- Toast Container -->
+<div id="toast-container" class="toast-container"></div>
+
+</body>
+</html>

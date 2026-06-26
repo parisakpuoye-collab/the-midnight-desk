@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Search</title>
+
+    <!-- Fonts -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&display=swap">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Crimson+Pro:wght@300;400;600&display=swap">
+
+    <!-- CSS -->
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body class="cursor-star md-background">
+
+<header>
+    <div class="logo">THE MIDNIGHT DESK</div>
+
+    <nav class="top-nav">
+        <a href="main-stories.html">MAIN STORIES</a>
+        <a href="side-stories.html">SIDE STORIES</a>
+        <a href="world-lore.html">WORLD LORE</a>
+        <a href="submission.html">SUBMISSION</a>
+        <a href="about.html">ABOUT</a>
+        <a href="search.html">SEARCH</a>
+
+        <!-- Notifications -->
+        <a href="notifications.html" class="notif-bell">
+            🔔 <span id="notif-count" class="notif-count"></span>
+        </a>
+
+        <!-- Admin Link -->
+        <a id="admin-link" href="admin-dashboard.html" class="admin-link-hidden">ADMIN</a>
+    </nav>
+
+    <div id="auth-controls" class="auth-controls">
+        <button id="logout-btn" class="logout-btn">Logout</button>
+    </div>
+</header>
+
+<div class="page-container">
+
+    <h1 class="admin-title">Search the Midnight Desk</h1>
+
+    <label for="search-input" class="visually-hidden">Search</label>
+    <input 
+        type="text" 
+        id="search-input" 
+        class="search-input"
+        placeholder="Search stories, chapters, lore, posts, characters..."
+    >
+
+    <div id="search-results" class="search-results"></div>
+
+</div>
+
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-storage.js"></script>
+
+<script src="app.js"></script>
+
+<script>
+const input = document.getElementById("search-input");
+const resultsBox = document.getElementById("search-results");
+
+input.addEventListener("input", () => {
+    const q = input.value.trim().toLowerCase();
+    if (q.length === 0) {
+        resultsBox.innerHTML = "";
+        return;
+    }
+    runSearch(q);
+});
+
+async function runSearch(query) {
+    resultsBox.innerHTML = `<p class="status-loading">Searching...</p>`;
+
+    const results = {
+        stories: [],
+        chapters: [],
+        lore: [],
+        posts: [],
+        characters: []
+    };
+
+    /* STORIES */
+    const storiesSnap = await db.collection("stories").get();
+    storiesSnap.forEach(doc => {
+        const data = doc.data();
+        if (
+            data.title.toLowerCase().includes(query) ||
+            data.description.toLowerCase().includes(query)
+        ) {
+            results.stories.push({ id: doc.id, ...data });
+        }
+    });
+
+    /* CHAPTERS */
+    for (const storyDoc of storiesSnap.docs) {
+        const chaptersSnap = await db.collection("stories")
+            .doc(storyDoc.id)
+            .collection("chapters")
+            .get();
+
+        chaptersSnap.forEach(ch => {
+            const data = ch.data();
+            if (
+                data.title.toLowerCase().includes(query) ||
+                data.content.toLowerCase().includes(query)
+            ) {
+                results.chapters.push({
+                    id: ch.id,
+                    storyId: storyDoc.id,
+                    storyTitle: storyDoc.data().title,
+                    ...data
+                });
+            }
+        });
+    }
+
+    /* LORE */
+    const loreSnap = await db.collection("lore").get();
+    loreSnap.forEach(doc => {
+        const data = doc.data();
+        if (
+            data.title.toLowerCase().includes(query) ||
+            data.description.toLowerCase().includes(query) ||
+            data.body.toLowerCase().includes(query)
+        ) {
+            results.lore.push({ id: doc.id, ...data });
+        }
+    });
+
+    /* POSTS */
+    const postsSnap = await db.collection("posts").get();
+    postsSnap.forEach(doc => {
+        const data = doc.data();
+        if (data.text.toLowerCase().includes(query)) {
+            results.posts.push({ id: doc.id, ...data });
+        }
+    });
+
+    /* CHARACTERS */
+    const charSnap = await db.collection("characters").get();
+    charSnap.forEach(doc => {
+        const c = doc.data();
+        const fields = [
+            c.name,
+            c.bio,
+            ...(c.abilities || []),
+            ...(c.hobbies || []),
+            ...(c.likes || []),
+            ...(c.dislikes || []),
+            ...(c.traits || []),
+            ...(c.fears || []),
+            ...(c.goals || []),
+            ...(c.funFacts || []),
+            ...(c.quotes || [])
+        ].join(" ").toLowerCase();
+
+        if (fields.includes(query)) {
+            results.characters.push({ id: doc.id, ...c });
+        }
+    });
+
+    renderResults(results);
+}
+
+function renderResults(r) {
+    resultsBox.innerHTML = "";
+
+    /* CHARACTERS */
+    if (r.characters.length > 0) {
+        resultsBox.innerHTML += `<h2 class="admin-title">Characters</h2>`;
+        r.characters.forEach(c => {
+            const traitsPreview = (c.traits || [])
+                .slice(0, 3)
+                .map(t => `<span class="tag">${t}</span>`)
+                .join("");
+
+            resultsBox.innerHTML += `
+                <div class="search-card">
+                    <img src="${c.portraitUrl}" alt="${c.name}" class="search-card-image">
+                    <div class="search-card-content">
+                        <h3 class="search-card-title">${c.name}</h3>
+                        <p class="search-card-text">${c.bio.substring(0, 150)}...</p>
+                        <div class="search-card-tags">${traitsPreview}</div>
+                        <a href="character.html?id=${c.id}" class="search-card-link">View Profile</a>
+                    </div>
+                </div>
+            `;
+        });
+    }
+
+    /* STORIES */
+    if (r.stories.length > 0) {
+        resultsBox.innerHTML += `<h2 class="admin-title">Stories</h2>`;
+        r.stories.forEach(s => {
+            resultsBox.innerHTML += `
+                <div class="search-card">
+                    <div class="search-card-content">
+                        <h3 class="search-card-title">${s.title}</h3>
+                        <p class="search-card-text">${s.description}</p>
+                        <a href="story-hub.html?id=${s.id}" class="search-card-link">Open Story</a>
+                    </div>
+                </div>
+            `;
+        });
+    }
+
+    /* CHAPTERS */
+    if (r.chapters.length > 0) {
+        resultsBox.innerHTML += `<h2 class="admin-title">Chapters</h2>`;
+        r.chapters.forEach(c => {
+            resultsBox.innerHTML += `
+                <div class="search-card">
+                    <div class="search-card-content">
+                        <h3 class="search-card-title">${c.title}</h3>
+                        <p class="search-card-text"><strong>Story:</strong> ${c.storyTitle}</p>
+                        <a href="chapter.html?story=${c.storyId}&chapter=${c.id}" class="search-card-link">Read Chapter</a>
+                    </div>
+                </div>
+            `;
+        });
+    }
+
+    /* LORE */
+    if (r.lore.length > 0) {
+        resultsBox.innerHTML += `<h2 class="admin-title">Lore</h2>`;
+        r.lore.forEach(l => {
+            resultsBox.innerHTML += `
+                <div class="search-card">
+                    <div class="search-card-content">
+                        <h3 class="search-card-title">${l.title}</h3>
+                        <p class="search-card-text">${l.description}</p>
+                        <button class="btn-standard" onclick="toggleLore('${l.id}')">Read More</button>
+                        <div id="lore-${l.id}" class="lore-body hidden">
+                            <p>${l.body}</p>
+                        </div>
+                    </div>
+                </div>
+            `;
+        });
+    }
+
+    /* POSTS */
+    if (r.posts.length > 0) {
+        resultsBox.innerHTML += `<h2 class="admin-title">Community Posts</h2>`;
+        r.posts.forEach(p => {
+            resultsBox.innerHTML += `
+                <div class="search-card">
+                    <div class="search-card-content">
+                        <p class="search-card-text">${p.text}</p>
+                        ${p.imageUrl ? `<img src="${p.imageUrl}" alt="Post Image" class="post-image">` : ""}
+                    </div>
+                </div>
+            `;
+        });
+    }
+
+    /* NO RESULTS */
+    if (
+        r.characters.length === 0 &&
+        r.stories.length === 0 &&
+        r.chapters.length === 0 &&
+        r.lore.length === 0 &&
+        r.posts.length === 0
+    ) {
+        resultsBox.innerHTML = `<p class="status-empty">No results found.</p>`;
+    }
+}
+
+function toggleLore(id) {
+    const box = document.getElementById(`lore-${id}`);
+    box.classList.toggle("hidden");
+}
+</script>
+
+</body>
+</html>

@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add Chapter</title>
+
+    <!-- Fonts -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&display=swap">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Crimson+Pro:wght@300;400;600&display=swap">
+
+    <!-- CSS -->
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body class="cursor-star md-background">
+
+<header>
+    <div class="logo">THE MIDNIGHT DESK</div>
+
+    <nav class="top-nav">
+        <a href="main-stories.html">MAIN STORIES</a>
+        <a href="side-stories.html">SIDE STORIES</a>
+        <a href="world-lore.html">WORLD LORE</a>
+        <a href="submission.html">SUBMISSION</a>
+        <a href="about.html">ABOUT</a>
+        <a id="admin-link" href="admin-dashboard.html" class="admin-link-hidden">ADMIN</a>
+    </nav>
+
+    <div id="auth-controls" class="auth-controls">
+        <button id="logout-btn" class="logout-btn">Logout</button>
+    </div>
+</header>
+
+<div class="page-container">
+
+    <h1 class="admin-title">Add Chapter</h1>
+
+    <form id="add-chapter-form">
+
+        <label for="chapter-story">Select Story</label>
+        <select id="chapter-story" required title="Select a story"></select>
+
+        <label for="chapter-title">Chapter Title</label>
+        <input type="text" id="chapter-title" required placeholder="Enter chapter title">
+
+        <!-- ⭐ NEW: SCHEDULED RELEASE -->
+        <label for="chapter-release">Release Date (optional)</label>
+        <input type="datetime-local" id="chapter-release">
+
+        <label for="chapter-content">Chapter Content</label>
+        <textarea id="chapter-content" required placeholder="Write your chapter here..."></textarea>
+
+        <label for="chapter-image-file">Add Image to Chapter</label>
+        <input type="file" id="chapter-image-file" accept="image/*">
+
+        <button type="button" id="insert-image-btn" class="btn-standard">Upload & Insert Image</button>
+
+        <label for="tipLink">Tip Jar Link (optional)</label>
+        <input type="text" id="tipLink" placeholder="https://ko-fi.com/yourname">
+
+        <label for="tipMessage">Tip Jar Message (optional)</label>
+        <input type="text" id="tipMessage" placeholder="Thank you for supporting my writing!">
+
+        <!-- ⭐ MUSIC PLAYLIST BUILDER -->
+        <h2 class="section-title">Chapter Music Playlist</h2>
+
+        <label for="track-url">Add Track (SoundCloud URL or MP3 URL)</label>
+        <input type="text" id="track-url" placeholder="https://soundcloud.com/... or https://example.com/song.mp3">
+
+        <label for="track-title">Track Title</label>
+        <input type="text" id="track-title" placeholder="Optional — auto-detected for MP3">
+
+        <label for="track-artist">Artist</label>
+        <input type="text" id="track-artist" placeholder="Optional">
+
+        <label class="checkbox-label">
+            <input type="checkbox" id="track-ambience"> Ambience Loop
+        </label>
+
+        <label for="track-fade">Fade-in Duration (ms)</label>
+        <input type="number" id="track-fade" value="2000">
+
+        <button type="button" id="add-track-btn" class="btn-standard">Add Track to Playlist</button>
+
+        <div id="playlist-display" class="playlist-display"></div>
+
+        <!-- ⭐ MUSIC SETTINGS -->
+        <h2 class="section-title">Music Settings</h2>
+
+        <label class="checkbox-label">
+            <input type="checkbox" id="music-autoplay" checked>
+            Auto-play Music on Chapter Load
+        </label>
+
+        <label for="music-volume">Default Volume (0–1)</label>
+        <input type="number" id="music-volume" step="0.1" min="0" max="1" value="0.8">
+
+        <!-- ⭐ REACTION SETTINGS -->
+        <h2 class="section-title">Reactions</h2>
+
+        <label class="checkbox-label">
+            <input type="checkbox" id="reactions-enabled" checked>
+            Enable Reactions for This Chapter
+        </label>
+
+        <button type="submit" class="btn-submit">Add Chapter</button>
+    </form>
+
+    <p id="chapter-success" class="success-text"></p>
+    <p id="chapter-error" class="error-text"></p>
+
+</div>
+
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-storage.js"></script>
+
+<script src="app.js"></script>
+
+<script>
+/* -------------------------------------------------- */
+/* IMAGE INSERTION                                    */
+/* -------------------------------------------------- */
+
+const insertBtn = document.getElementById("insert-image-btn");
+const imageInput = document.getElementById("chapter-image-file");
+const chapterContent = document.getElementById("chapter-content");
+
+insertBtn.addEventListener("click", async () => {
+    const file = imageInput.files[0];
+    if (!file) return;
+
+    try {
+        const storageRef = firebase.storage().ref("chapter-images/" + Date.now() + "-" + file.name);
+        await storageRef.put(file);
+        const imageURL = await storageRef.getDownloadURL();
+
+        const insertText = `\n<img src="${imageURL}" class="chapter-image">\n`;
+        chapterContent.value += insertText;
+
+        imageInput.value = "";
+    } catch (err) {
+        alert("Image upload failed: " + err.message);
+    }
+});
+
+/* -------------------------------------------------- */
+/* PLAYLIST BUILDER                                   */
+/* -------------------------------------------------- */
+
+let playlist = [];
+
+document.getElementById("add-track-btn").addEventListener("click", () => {
+    const url = document.getElementById("track-url").value.trim();
+    if (!url) return alert("Enter a track URL");
+
+    const title = document.getElementById("track-title").value.trim() || "Untitled Track";
+    const artist = document.getElementById("track-artist").value.trim() || "Unknown Artist";
+    const ambience = document.getElementById("track-ambience").checked;
+    const fade = parseInt(document.getElementById("track-fade").value) || 2000;
+
+    playlist.push({ url, title, artist, ambience, fade });
+
+    renderPlaylist();
+});
+
+function renderPlaylist() {
+    const box = document.getElementById("playlist-display");
+    box.innerHTML = "";
+
+    playlist.forEach((track, index) => {
+        const div = document.createElement("div");
+        div.classList.add("playlist-item");
+
+        div.innerHTML = `
+            <strong>${track.title}</strong> — ${track.artist}<br>
+            <small>${track.url}</small><br>
+            Ambience: ${track.ambience ? "Yes" : "No"} | Fade: ${track.fade}ms
+            <br>
+            <button class="btn-remove" onclick="removeTrack(${index})">Remove</button>
+        `;
+
+        box.appendChild(div);
+    });
+}
+
+function removeTrack(i) {
+    playlist.splice(i, 1);
+    renderPlaylist();
+}
+
+/* -------------------------------------------------- */
+/* NOTIFICATION TRIGGER                               */
+/* -------------------------------------------------- */
+
+async function notifyNewChapter(storyId, chapterId, chapterTitle) {
+    const usersSnap = await db.collection("users").get();
+
+    usersSnap.forEach(userDoc => {
+        db.collection("users")
+            .doc(userDoc.id)
+            .collection("notifications")
+            .add({
+                type: "newChapter",
+                message: `A new chapter has been released: ${chapterTitle}`,
+                link: `chapter.html?story=${storyId}&chapter=${chapterId}`,
+                createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                read: false
+            });
+    });
+}
+
+/* -------------------------------------------------- */
+/* CHAPTER CREATION + ⭐ SCHEDULED RELEASE             */
+/* -------------------------------------------------- */
+
+const form = document.getElementById("add-chapter-form");
+
+form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    const storyId = document.getElementById("chapter-story").value;
+    const title = document.getElementById("chapter-title").value.trim();
+    const content = chapterContent.value.trim();
+
+    const reactionsEnabled = document.getElementById("reactions-enabled").checked;
+    const autoplay = document.getElementById("music-autoplay").checked;
+    const volume = parseFloat(document.getElementById("music-volume").value);
+
+    const tipLink = document.getElementById("tipLink").value.trim();
+    const tipMessage = document.getElementById("tipMessage").value.trim();
+
+    const releaseValue = document.getElementById("chapter-release").value;
+    const releaseAt = releaseValue
+        ? firebase.firestore.Timestamp.fromDate(new Date(releaseValue))
+        : firebase.firestore.Timestamp.now();
+
+    try {
+        const chapterRef = await firebase.firestore()
+            .collection("stories")
+            .doc(storyId)
+            .collection("chapters")
+            .add({
+                title,
+                content,
+                createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                releaseAt,
+                views: 0,
+                reactionsEnabled,
+                musicSettings: {
+                    autoplay,
+                    volume
+                },
+                tipLink: tipLink || null,
+                tipMessage: tipMessage || null
+            });
+
+        for (let track of playlist) {
+            await chapterRef.collection("playlist").add(track);
+        }
+
+        if (releaseAt.toDate() <= new Date()) {
+            notifyNewChapter(storyId, chapterRef.id, title);
+            document.getElementById("chapter-success").textContent =
+                "Chapter released immediately!";
+        } else {
+            document.getElementById("chapter-success").textContent =
+                "Chapter scheduled for release on " + releaseAt.toDate().toLocaleString();
+        }
+
+        form.reset();
+        playlist = [];
+        renderPlaylist();
+
+    } catch (err) {
+        document.getElementById("chapter-error").textContent = "Error: " + err.message;
+        document.getElementById("chapter-success").textContent = "";
+    }
+});
+
+/* -------------------------------------------------- */
+/* LOAD STORIES                                       */
+/* -------------------------------------------------- */
+
+document.addEventListener("DOMContentLoaded", async () => {
+    const select = document.getElementById("chapter-story");
+    const snapshot = await firebase.firestore().collection("stories").orderBy("title").get();
+
+    snapshot.forEach(doc => {
+        const option = document.createElement("option");
+        option.value = doc.id;
+        option.textContent = doc.data().title;
+        select.appendChild(option);
+    });
+});
+</script>
+
+</body>
+</html>

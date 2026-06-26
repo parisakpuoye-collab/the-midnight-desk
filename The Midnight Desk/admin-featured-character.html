@@ -1,0 +1,173 @@
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Featured Character</title>
+
+    <!-- Fonts -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&display=swap">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Crimson+Pro:wght@300;400;600&display=swap">
+
+    <!-- CSS -->
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body class="cursor-star md-background">
+
+<header>
+    <div class="logo">THE MIDNIGHT DESK</div>
+
+    <nav class="top-nav">
+        <a href="admin-dashboard.html">ADMIN HOME</a>
+        <a href="character-encyclopedia.html">CHARACTERS</a>
+
+        <!-- Admin Link -->
+        <a id="admin-link" href="admin-dashboard.html" class="admin-link-hidden">ADMIN</a>
+    </nav>
+
+    <!-- Auth Controls -->
+    <div id="auth-controls" class="auth-controls">
+        <button id="logout-btn" class="logout-btn">Logout</button>
+    </div>
+</header>
+
+<div class="page-container">
+
+    <h1 class="admin-title">Character of the Week</h1>
+
+    <!-- CURRENT FEATURED CHARACTER -->
+    <div class="glass-panel">
+        <div class="panel-header">🌙 Current Featured Character</div>
+        <div id="current-featured"></div>
+    </div>
+
+    <!-- SELECT NEW CHARACTER -->
+    <div class="glass-panel">
+        <div class="panel-header">🌙 Feature a New Character</div>
+
+        <label for="character-select">Select Character</label>
+        <select id="character-select"></select>
+
+        <button class="btn-standard" id="feature-btn">Feature This Character</button>
+
+        <p id="status" class="status-success"></p>
+        <p id="error" class="status-error"></p>
+    </div>
+
+</div>
+
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-storage.js"></script>
+
+<script src="app.js"></script>
+
+<script>
+const featuredBox = document.getElementById("current-featured");
+const selectBox = document.getElementById("character-select");
+
+/* -------------------------------------------------- */
+/* LOAD CURRENT FEATURED CHARACTER                    */
+/* -------------------------------------------------- */
+
+async function loadFeatured() {
+    const snap = await db.collection("characters")
+        .orderBy("featuredAt", "desc")
+        .limit(1)
+        .get();
+
+    if (snap.empty) {
+        featuredBox.innerHTML = "<p>No character is currently featured.</p>";
+        return;
+    }
+
+    const doc = snap.docs[0];
+    const data = doc.data();
+
+    featuredBox.innerHTML = `
+        <div class="featured-box">
+            <img src="${data.portraitUrl}" alt="${data.name}" class="portrait-preview">
+            <div>
+                <h2>${data.name}</h2>
+                <button class="btn-standard" onclick="window.location.href='character.html?id=${doc.id}'">View Profile</button>
+                <button class="btn-standard" onclick="window.location.href='admin-edit-character.html?id=${doc.id}'">Edit Character</button>
+            </div>
+        </div>
+    `;
+}
+
+/* -------------------------------------------------- */
+/* LOAD ALL CHARACTERS INTO DROPDOWN                  */
+/* -------------------------------------------------- */
+
+async function loadCharacterList() {
+    const snap = await db.collection("characters").orderBy("name").get();
+
+    snap.forEach(doc => {
+        const opt = document.createElement("option");
+        opt.value = doc.id;
+        opt.textContent = doc.data().name;
+        selectBox.appendChild(opt);
+    });
+}
+
+/* -------------------------------------------------- */
+/* SEND NOTIFICATIONS FOR COTW                        */
+/* -------------------------------------------------- */
+
+async function notifyCOTW(characterId, characterName) {
+    const usersSnap = await db.collection("users").get();
+
+    usersSnap.forEach(userDoc => {
+        db.collection("users")
+            .doc(userDoc.id)
+            .collection("notifications")
+            .add({
+                type: "cotw",
+                message: `${characterName} is now Character of the Week!`,
+                link: `character.html?id=${characterId}`,
+                createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                read: false
+            });
+    });
+}
+
+/* -------------------------------------------------- */
+/* FEATURE A CHARACTER                                */
+/* -------------------------------------------------- */
+
+document.getElementById("feature-btn").addEventListener("click", async () => {
+    const id = selectBox.value;
+
+    try {
+        await db.collection("characters").doc(id).update({
+            featuredAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+
+        const charDoc = await db.collection("characters").doc(id).get();
+        notifyCOTW(id, charDoc.data().name);
+
+        document.getElementById("status").textContent = "Featured character updated!";
+        document.getElementById("error").textContent = "";
+
+        loadFeatured();
+
+    } catch (err) {
+        document.getElementById("error").textContent = err.message;
+        document.getElementById("status").textContent = "";
+    }
+});
+
+/* -------------------------------------------------- */
+/* INIT                                               */
+/* -------------------------------------------------- */
+
+document.addEventListener("DOMContentLoaded", () => {
+    loadFeatured();
+    loadCharacterList();
+});
+</script>
+
+</body>
+</html>

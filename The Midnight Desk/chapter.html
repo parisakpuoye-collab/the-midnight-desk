@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chapter</title>
+
+    <!-- Fonts -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&display=swap">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Crimson+Pro:wght@300;400;600&display=swap">
+
+    <!-- CSS -->
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body class="cursor-star md-background">
+
+<header>
+    <div class="logo">THE MIDNIGHT DESK</div>
+
+    <nav class="top-nav">
+        <a href="main-stories.html">MAIN STORIES</a>
+        <a href="side-stories.html">SIDE STORIES</a>
+        <a href="world-lore.html">WORLD LORE</a>
+        <a href="submission.html">SUBMISSION</a>
+        <a href="about.html">ABOUT</a>
+        <a id="admin-link" href="admin-dashboard.html" class="admin-link-hidden">ADMIN</a>
+    </nav>
+
+    <div id="auth-controls" class="auth-controls">
+        <button id="logout-btn" class="logout-btn">Logout</button>
+    </div>
+</header>
+
+<div class="page-container">
+
+    <!-- Chapter Content -->
+    <div id="chapter-container" class="chapter-reader"></div>
+
+    <!-- ⭐ REACTION BAR -->
+    <div id="reaction-bar" class="reaction-bar">
+        <span class="reaction-btn" data-type="awe">⭐ <span class="count" id="count-awe">0</span></span>
+        <span class="reaction-btn" data-type="love">❤️ <span class="count" id="count-love">0</span></span>
+        <span class="reaction-btn" data-type="emotional">😭 <span class="count" id="count-emotional">0</span></span>
+        <span class="reaction-btn" data-type="intense">🔥 <span class="count" id="count-intense">0</span></span>
+        <span class="reaction-btn" data-type="suspense">👀 <span class="count" id="count-suspense">0</span></span>
+    </div>
+
+    <!-- ⭐ TIP JAR -->
+    <div id="tip-jar" class="tip-jar">
+        <button id="tip-jar-btn" class="tip-jar-btn">✨ Support the Author ✨</button>
+        <p id="tip-jar-message" class="tip-jar-message"></p>
+    </div>
+
+    <!-- Navigation -->
+    <div id="chapter-navigation" class="chapter-nav"></div>
+
+</div>
+
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-storage.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+
+<script src="app.js"></script>
+
+<script>
+let storyId, chapterId;
+let progressSaveTimer = null;
+
+document.addEventListener("DOMContentLoaded", async () => {
+    const params = new URLSearchParams(window.location.search);
+    storyId = params.get("story");
+    chapterId = params.get("chapter");
+
+    if (!storyId || !chapterId) return;
+
+    try {
+        const chapterRef = firebase.firestore()
+            .collection("stories")
+            .doc(storyId)
+            .collection("chapters")
+            .doc(chapterId);
+
+        const chapterDoc = await chapterRef.get();
+        const data = chapterDoc.data();
+
+        if (!data) {
+            document.getElementById("chapter-container").innerHTML =
+                `<p class="status-error">Chapter not found.</p>`;
+            return;
+        }
+
+        /* ⭐ SCHEDULED RELEASE CHECK */
+        const releaseAt = data.releaseAt?.toDate() || new Date(0);
+        const now = new Date();
+
+        if (releaseAt > now) {
+            showLockedScreen(data.title, releaseAt);
+            return;
+        }
+
+        /* ⭐ LOAD CHAPTER CONTENT */
+        document.getElementById("chapter-container").innerHTML = data.content;
+
+        /* ⭐ TIP JAR */
+        loadTipJar(data);
+
+        /* Navigation */
+        loadNavigation(storyId, chapterId);
+
+        /* View Tracking */
+        await chapterRef.update({
+            views: firebase.firestore.FieldValue.increment(1)
+        });
+
+        /* Progress */
+        initChapterProgress();
+
+        /* Reactions */
+        loadChapterReactions();
+        setupReactionButtons();
+
+    } catch (err) {
+        document.getElementById("chapter-container").innerHTML =
+            `<p class="status-error">Error loading chapter.</p>`;
+    }
+});
+
+/* -------------------------------------------------- */
+/* ⭐ LOCKED SCREEN + COUNTDOWN                        */
+/* -------------------------------------------------- */
+function showLockedScreen(title, releaseAt) {
+    const container = document.getElementById("chapter-container");
+
+    container.innerHTML = `
+        <div class="locked-screen">
+            <h1>${title}</h1>
+            <p>This chapter will unlock on:</p>
+            <h2>${releaseAt.toLocaleString()}</h2>
+            <div class="lock-icon">🔒</div>
+            <div id="countdown" class="countdown"></div>
+        </div>
+    `;
+
+    updateCountdown(releaseAt);
+    setInterval(() => updateCountdown(releaseAt), 1000);
+}
+
+function updateCountdown(releaseAt) {
+    const now = new Date();
+    const diff = releaseAt - now;
+
+    if (diff <= 0) {
+        location.reload();
+        return;
+    }
+
+    const hours = Math.floor(diff / 3600000);
+    const mins = Math.floor((diff % 3600000) / 60000);
+    const secs = Math.floor((diff % 60000) / 1000);
+
+    document.getElementById("countdown").textContent =
+        `${hours}h ${mins}m ${secs}s remaining`;
+}
+
+/* -------------------------------------------------- */
+/* ⭐ TIP JAR                                          */
+/* -------------------------------------------------- */
+function loadTipJar(chapterData) {
+    const tipJar = document.getElementById("tip-jar");
+    const msg = document.getElementById("tip-jar-message");
+    const btn = document.getElementById("tip-jar-btn");
+
+    if (!chapterData.tipLink) {
+        tipJar.style.display = "none";
+        return;
+    }
+
+    tipJar.style.display = "block";
+    msg.textContent = chapterData.tipMessage || "";
+
+    btn.onclick = () => {
+        window.open(chapterData.tipLink, "_blank");
+    };
+}
+
+/* -------------------------------------------------- */
+/* ⭐ READING PROGRESS SYSTEM                          */
+/* -------------------------------------------------- */
+async function initChapterProgress() {
+    const user = firebase.auth().currentUser;
+    if (!user) return;
+
+    const progressRef = firebase.firestore()
+        .collection("users")
+        .doc(user.uid)
+        .collection("progress")
+        .doc(`${storyId}_${chapterId}`);
+
+    const saved = await progressRef.get();
+
+    if (saved.exists && saved.data().scrollPercent) {
+        const percent = saved.data().scrollPercent;
+        const scrollY = (percent / 100) * (document.body.scrollHeight - window.innerHeight);
+        window.scrollTo(0, scrollY);
+    }
+
+    window.addEventListener("scroll", () => {
+        if (progressSaveTimer) clearTimeout(progressSaveTimer);
+        progressSaveTimer = setTimeout(() => saveProgress(progressRef), 800);
+    });
+}
+
+async function saveProgress(progressRef) {
+    const user = firebase.auth().currentUser;
+    if (!user) return;
+
+    const scrollTop = window.scrollY;
+    const docHeight = document.body.scrollHeight - window.innerHeight;
+    const percent = Math.min(100, Math.round((scrollTop / docHeight) * 100));
+
+    const completed = percent >= 95;
+
+    await progressRef.set({
+        scrollPercent: percent,
+        completed: completed,
+        lastOpened: firebase.firestore.FieldValue.serverTimestamp()
+    }, { merge: true });
+}
+
+/* -------------------------------------------------- */
+/* ⭐ REACTION SYSTEM                                  */
+/* -------------------------------------------------- */
+function setupReactionButtons() {
+    const buttons = document.querySelectorAll(".reaction-btn");
+    buttons.forEach(btn => {
+        btn.addEventListener("click", () => {
+            const type = btn.getAttribute("data-type");
+            toggleChapterReaction(type);
+        });
+    });
+}
+
+async function loadChapterReactions() {
+    const user = firebase.auth().currentUser;
+    if (!user) return;
+
+    const reactionsRef = firebase.firestore()
+        .collection("stories")
+        .doc(storyId)
+        .collection("chapters")
+        .doc(chapterId)
+        .collection("reactions");
+
+    const userDoc = await reactionsRef.doc(user.uid).get();
+    if (userDoc.exists) {
+        highlightUserReactions(userDoc.data());
+    }
+
+    const types = ["awe", "love", "emotional", "intense", "suspense"];
+    for (let t of types) {
+        const snap = await reactionsRef.where(t, "==", true).get();
+        document.getElementById(`count-${t}`).textContent = snap.size;
+    }
+}
+
+function highlightUserReactions(data) {
+    Object.keys(data).forEach(key => {
+        if (data[key] === true) {
+            const btn = document.querySelector(`.reaction-btn[data-type="${key}"]`);
+            if (btn) btn.classList.add("active-reaction");
+        }
+    });
+}
+
+async function toggleChapterReaction(type) {
+    const user = firebase.auth().currentUser;
+    if (!user) return;
+
+    const ref = firebase.firestore()
+        .collection("stories")
+        .doc(storyId)
+        .collection("chapters")
+        .doc(chapterId)
+        .collection("reactions")
+        .doc(user.uid);
+
+    const docSnap = await ref.get();
+    let current = docSnap.exists ? docSnap.data()[type] : false;
+
+    const newValue = !current;
+
+    await ref.set({
+        [type]: newValue,
+        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+    }, { merge: true });
+
+    loadChapterReactions();
+}
+
+/* -------------------------------------------------- */
+/* ⭐ NAVIGATION                                       */
+/* -------------------------------------------------- */
+async function loadNavigation(storyId, chapterId) {
+    const nav = document.getElementById("chapter-navigation");
+    nav.innerHTML = "";
+
+    const chaptersSnap = await firebase.firestore()
+        .collection("stories")
+        .doc(storyId)
+        .collection("chapters")
+        .orderBy("createdAt")
+        .get();
+
+    const chapters = [];
+    chaptersSnap.forEach(doc => chapters.push({ id: doc.id, ...doc.data() }));
+
+    const index = chapters.findIndex(c => c.id === chapterId);
+
+    if (index > 0) {
+        const prev = chapters[index - 1];
+        nav.innerHTML += `<a class="nav-btn" href="chapter.html?story=${storyId}&chapter=${prev.id}">⬅ Previous</a>`;
+    }
+
+    if (index < chapters.length - 1) {
+        const next = chapters[index + 1];
+        nav.innerHTML += `<a class="nav-btn" href="chapter.html?story=${storyId}&chapter=${next.id}">Next ➜</a>`;
+    }
+}
+
+/* -------------------------------------------------- */
+/* ⭐ FAVOURITE LINES                                  */
+/* -------------------------------------------------- */
+document.addEventListener("mouseup", () => {
+    const selection = window.getSelection().toString().trim();
+    if (!selection) return;
+    showSavePopup(selection);
+});
+
+function showSavePopup(text) {
+    const popup = document.createElement("div");
+    popup.className = "save-line-popup";
+    popup.textContent = "Save Line";
+
+    popup.onclick = () => saveFavouriteLine(text);
+
+    document.body.appendChild(popup);
+
+    const rect = window.getSelection().getRangeAt(0).getBoundingClientRect();
+    popup.style.left = rect.x + "px";
+    popup.style.top = (rect.y - 40) + "px";
+
+    setTimeout(() => popup.remove(), 3000);
+}
+
+async function saveFavouriteLine(text) {
+    const user = firebase.auth().currentUser;
+    if (!user) {
+        alert("You must be logged in to save favourite lines.");
+        return;
+    }
+
+    await db.collection("users")
+        .doc(user.uid)
+        .collection("favouriteLines")
+        .add({
+            text,
+            storyId,
+            chapterId,
+            savedAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+
+    alert("Line saved!");
+}
+</script>
+
+<!-- Return Home Button -->
+<a href="index.html" class="btn-home">🏠 Home</a>
+
+<!-- ⭐ FLOATING MINI MUSIC PLAYER (STANDARDIZED + ACCESSIBLE) -->
+<div id="music-player" class="mini-music-player">
+
+    <div class="mp-header">
+        <span id="mp-title">Loading...</span>
+    </div>
+
+    <div class="mp-progress">
+        <div id="mp-progress-fill" class="mp-progress-fill"></div>
+    </div>
+
+    <div class="mp-controls">
+        <button id="mp-prev" class="mp-btn">⏮</button>
+        <button id="mp-play" class="mp-btn">▶</button>
+        <button id="mp-next" class="mp-btn">⏭</button>
+        <button id="mp-loop" class="mp-btn">🔁</button>
+    </div>
+
+    <div class="mp-volume">
+        <label for="mp-volume-slider" class="visually-hidden">Music Volume</label>
+        <input type="range" id="mp-volume-slider" min="0" max="1" step="0.05" value="0.8">
+    </div>
+
+    <audio id="mp-audio"></audio>
+
+    <!-- ACCESSIBLE IFRAME -->
+    <iframe id="mp-sc-frame" allow="autoplay" class="mp-sc-frame" title="Music Player Audio Source"></iframe>
+</div>
+
+</body>
+</html>

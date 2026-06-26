@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Character Encyclopedia</title>
+
+    <!-- Fonts -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&display=swap">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Crimson+Pro:wght@300;400;600&display=swap">
+
+    <!-- CSS -->
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body class="cursor-star md-background">
+
+<header>
+    <div class="logo">THE MIDNIGHT DESK</div>
+
+    <nav class="top-nav">
+        <a href="index.html">HOME</a>
+        <a href="main-stories.html">MAIN STORIES</a>
+        <a href="side-stories.html">SIDE STORIES</a>
+        <a href="world-lore.html">WORLD LORE</a>
+        <a href="submission.html">SUBMISSION</a>
+        <a href="about.html">ABOUT</a>
+        <a id="admin-link" href="admin-dashboard.html" class="admin-link-hidden">ADMIN</a>
+    </nav>
+</header>
+
+<div class="page-container">
+
+    <h1 class="admin-title">Character Encyclopedia</h1>
+
+    <!-- Search Bar -->
+    <label for="search-bar" class="visually-hidden">Search Characters</label>
+    <input type="text" id="search-bar" class="search-input" placeholder="Search characters by name, ability, or keyword...">
+
+    <!-- Filter Row -->
+    <div id="filter-row" class="filter-row">
+
+        <label for="filter-story" class="visually-hidden">Filter by Story</label>
+        <select id="filter-story" class="filter-select">
+            <option value="">Filter by Story</option>
+        </select>
+
+        <label for="filter-ability" class="visually-hidden">Filter by Ability</label>
+        <select id="filter-ability" class="filter-select">
+            <option value="">Filter by Ability</option>
+        </select>
+
+        <label for="filter-trait" class="visually-hidden">Filter by Trait</label>
+        <select id="filter-trait" class="filter-select">
+            <option value="">Filter by Trait</option>
+        </select>
+
+        <label for="filter-hobby" class="visually-hidden">Filter by Hobby</label>
+        <select id="filter-hobby" class="filter-select">
+            <option value="">Filter by Hobby</option>
+        </select>
+
+    </div>
+
+    <!-- Character Grid -->
+    <div id="character-grid" class="character-grid"></div>
+
+</div>
+
+<a href="index.html" class="btn-home">← Home</a>
+
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+
+<script src="app.js"></script>
+
+<script>
+/* -------------------------------------------------- */
+/* CHARACTER ENCYCLOPEDIA LOADING                     */
+/* -------------------------------------------------- */
+
+const grid = document.getElementById("character-grid");
+const searchBar = document.getElementById("search-bar");
+const filterStory = document.getElementById("filter-story");
+const filterAbility = document.getElementById("filter-ability");
+const filterTrait = document.getElementById("filter-trait");
+const filterHobby = document.getElementById("filter-hobby");
+
+let allCharacters = [];
+
+// Load characters from Firestore
+async function loadCharacters() {
+    const snap = await db.collection("characters").orderBy("name").get();
+    allCharacters = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+    populateFilters();
+    renderCharacters(allCharacters);
+}
+
+// Populate filters
+async function populateFilters() {
+    /* Story Filter */
+    const storySnap = await db.collection("stories").orderBy("title").get();
+    storySnap.forEach(doc => {
+        const opt = document.createElement("option");
+        opt.value = doc.id;
+        opt.textContent = doc.data().title;
+        filterStory.appendChild(opt);
+    });
+
+    /* Ability Filter */
+    const abilitySet = new Set();
+    allCharacters.forEach(c => (c.abilities || []).forEach(a => abilitySet.add(a)));
+    abilitySet.forEach(a => {
+        const opt = document.createElement("option");
+        opt.value = a;
+        opt.textContent = a;
+        filterAbility.appendChild(opt);
+    });
+
+    /* Trait Filter */
+    const traitSet = new Set();
+    allCharacters.forEach(c => (c.traits || []).forEach(t => traitSet.add(t)));
+    traitSet.forEach(t => {
+        const opt = document.createElement("option");
+        opt.value = t;
+        opt.textContent = t;
+        filterTrait.appendChild(opt);
+    });
+
+    /* Hobby Filter */
+    const hobbySet = new Set();
+    allCharacters.forEach(c => (c.hobbies || []).forEach(h => hobbySet.add(h)));
+    hobbySet.forEach(h => {
+        const opt = document.createElement("option");
+        opt.value = h;
+        opt.textContent = h;
+        filterHobby.appendChild(opt);
+    });
+}
+
+// Render character cards
+function renderCharacters(list) {
+    grid.innerHTML = "";
+
+    list.forEach(char => {
+        const card = document.createElement("div");
+        card.className = "character-card";
+
+        const traitsPreview = (char.traits || [])
+            .slice(0, 3)
+            .map(t => `<span class="tag">${t}</span>`)
+            .join("");
+
+        const featuredBadge = char.featuredAt
+            ? `<div class="featured-badge">⭐ Featured</div>`
+            : "";
+
+        card.innerHTML = `
+            ${featuredBadge}
+            <img src="${char.portraitUrl}" alt="${char.name}" class="character-portrait">
+            <h3 class="character-name">${char.name}</h3>
+            <p class="character-bio">
+                ${char.bio.substring(0, 120)}...
+            </p>
+            <div class="character-tags">${traitsPreview}</div>
+        `;
+
+        card.addEventListener("click", () => {
+            window.location.href = "character.html?id=" + char.id;
+        });
+
+        grid.appendChild(card);
+    });
+}
+
+// Search + filter logic
+function applyFilters() {
+    const query = searchBar.value.toLowerCase();
+    const storyFilterVal = filterStory.value;
+    const abilityFilterVal = filterAbility.value;
+    const traitFilterVal = filterTrait.value;
+    const hobbyFilterVal = filterHobby.value;
+
+    let filtered = allCharacters.filter(c => {
+        const matchesSearch =
+            c.name.toLowerCase().includes(query) ||
+            c.bio.toLowerCase().includes(query) ||
+            (c.abilities || []).some(a => a.toLowerCase().includes(query)) ||
+            (c.hobbies || []).some(h => h.toLowerCase().includes(query)) ||
+            (c.likes || []).some(l => l.toLowerCase().includes(query)) ||
+            (c.dislikes || []).some(d => d.toLowerCase().includes(query)) ||
+            (c.traits || []).some(t => t.toLowerCase().includes(query)) ||
+            (c.fears || []).some(f => f.toLowerCase().includes(query)) ||
+            (c.goals || []).some(g => g.toLowerCase().includes(query)) ||
+            (c.funFacts || []).some(ff => ff.toLowerCase().includes(query)) ||
+            (c.quotes || []).some(q => q.toLowerCase().includes(query));
+
+        const matchesStory =
+            !storyFilterVal ||
+            (c.appearsIn || []).some(a => a.storyId === storyFilterVal);
+
+        const matchesAbility =
+            !abilityFilterVal ||
+            (c.abilities || []).includes(abilityFilterVal);
+
+        const matchesTrait =
+            !traitFilterVal ||
+            (c.traits || []).includes(traitFilterVal);
+
+        const matchesHobby =
+            !hobbyFilterVal ||
+            (c.hobbies || []).includes(hobbyFilterVal);
+
+        return (
+            matchesSearch &&
+            matchesStory &&
+            matchesAbility &&
+            matchesTrait &&
+            matchesHobby
+        );
+    });
+
+    renderCharacters(filtered);
+}
+
+searchBar.addEventListener("input", applyFilters);
+filterStory.addEventListener("change", applyFilters);
+filterAbility.addEventListener("change", applyFilters);
+filterTrait.addEventListener("change", applyFilters);
+filterHobby.addEventListener("change", applyFilters);
+
+document.addEventListener("DOMContentLoaded", loadCharacters);
+</script>
+
+</body>
+</html>
